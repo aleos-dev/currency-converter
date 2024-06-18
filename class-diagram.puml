@@ -1,0 +1,197 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+package entities {
+
+    class Currency {
+        - id: Integer
+        - name: String
+        - code: String
+        - sign: String
+    }
+
+    class ExchangeRate {
+        - id: Integer
+        - from: Currency
+        - to: Currency
+        - rate: BigDecimal
+    }
+}
+
+Currency "1" -- "0..*" ExchangeRate : from
+Currency "1" -- "0..*" ExchangeRate : to
+
+package "filters" {
+
+   abstract class BaseFilter<T> {
+        + doFilter(req: ServletRequest, resp: ServletResponse, chain: FilterChain): void
+        - validate(payload: T): boolean
+        - parseHttpRequest(req: HttpServletRequest): T
+        - putToRequestContext(req: HttpServletRequest, payload: T): void
+        - getPayloadClass(): Class<T>
+    }
+
+    class CorsFilter {
+    }
+
+    class ContentTypeFilter {
+    }
+
+    class CurrencyFilter extends BaseFilter<CurrencyPayload> {
+        + validate(payload: CurrencyPayload): boolean
+        + putToRequestContext(req: HttpServletRequest, payload: CurrencyPayload): void
+        + getPayloadClass(): Class<CurrencyPayload>
+    }
+
+    class ConversionRateFilter extends BaseFilter<ConversionRatePayload> {
+        + validate(payload: ConversionRatePayload): boolean
+        + putToRequestContext(req: HttpServletRequest, payload: ConversionRatePayload): void
+        + getPayloadClass(): Class<ConversionRatePayload>
+    }
+
+    class ConversionFilter extends BaseFilter<ConversionPayload> {
+        + validate(payload: ConversionPayload): boolean
+        + putToRequestContext(req: HttpServletRequest, payload: ConversionPayload): void
+        + getPayloadClass(): Class<ConversionPayload>
+    }
+
+    class ExceptionHandlerFilter {
+    }
+}
+
+CurrencyFilter o-- servlets.CurrencyServlet: filters
+CurrencyFilter o-- servlets.CurrenciesServlet: filters
+CurrencyFilter o-- servlets.CurrenciesServlet: filters
+ConversionRateFilter o-- servlets.ConversionRateServlet: filters
+ConversionRateFilter o-- servlets.ConversionRatesServlet: filters
+ConversionFilter o-- servlets.ConversionServlet: filters
+
+filters o-- validators: validate
+
+package "validators" {
+    class CurrencyValidator {
+    }
+    class ConversionRateValidator {
+    }
+    class ConversionValidator {
+    }
+}
+package "servlets" {
+
+    class CurrenciesServlet {
+        + doGet(req, resp): void
+        + doPost(req, resp): void
+    }
+
+    class CurrencyServlet {
+        + doGet(req, resp): void
+    }
+
+    class ConversionRatesServlet {
+        + doGet(req, resp): void
+        + doPost(req, resp): void
+    }
+
+    class ConversionRateServlet {
+        + doGet(req, resp): void
+        + doPath(req, resp): void
+    }
+
+    class ConversionServlet {
+        + doGet(req, resp): void
+    }
+}
+
+CurrenciesServlet o-- services.CurrencyService : uses
+CurrencyServlet o-- services.CurrencyService : uses
+ConversionRatesServlet o-- services.ConversionRateService : uses
+ConversionRateServlet o-- services.ConversionRateService : uses
+ConversionServlet o-- services.ConversionService: uses
+
+package "services" {
+
+    class CurrencyService {
+        + findAll(): Collection<CurrencyResponse>
+        + save(payload: CurrencyPayload): CurrencyResponse
+        + find(payload: Code): Optional<CurrencyResponse>
+    }
+
+    class ConversionRateService {
+        + findAll(): Collection<ConversionRateResponse>
+        + save(payload: ConversionRatePayload): ConversionRateResponse
+        + find(payload: String): Optional<ConversionRateResponse>
+        + update(payload: ConversionRatePayload): ConversionRatePayload
+    }
+
+    class ConversionService {
+        + convert(payload: ConversionPayload): ConversionResponse
+    }
+}
+
+ConversionRateService o-- dtos.ConversionPayload
+
+package "dtos" {
+
+    class CurrencyPayload {
+        - name: String
+        - code: String
+        - sign: String
+    }
+
+    class CurrencyResponse {
+        - id: Integer
+        - name: String
+        - code: String
+        - sign: String
+    }
+
+    class ConversionRatePayload {
+        - from: Currency
+        - to: Currency
+        - rate: BigDecimal
+    }
+
+    class ConversionRateResponse {
+        - id: Integer
+        - baseCurrency: Currency
+        - targetCurrency: Currency
+        - rate: BigDecimal
+    }
+
+    class ConversionPayload {
+        - from: String
+        - to: String
+        - amount: BigDecimal
+    }
+
+    class ConversionResponse {
+        - baseCurrency: Currency
+        - targetCurrency: Currency
+        - rate: BigDecimal
+        - amount: BigDecimal
+        - convertedAmount: BigDecimal
+    }
+
+    class ErrorResponse {
+        - message: String
+    }
+}
+
+package "dao" {
+
+    abstract class CrudDao<T, I> {
+        + create(entity: T): I
+        + read(): Collection<T>
+        + readById(id: I): Optional<T>
+        + update(entity: T): void
+        + delete(id: I): void
+    }
+
+    class CurrencyRepository extends CrudDao<Currency, Integer> {
+    }
+
+    class ConversionRateRepository extends CrudDao<ConversionRate, Integer> {
+    }
+}
+
+@enduml
