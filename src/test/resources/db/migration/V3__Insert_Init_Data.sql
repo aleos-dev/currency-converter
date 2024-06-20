@@ -1,13 +1,13 @@
-INSERT INTO currencies (code, name, sign) VALUES ('USD', 'United States Dollar', '$');
-INSERT INTO currencies (code, name, sign) VALUES ('EUR', 'Euro', '€');
-INSERT INTO currencies (code, name, sign) VALUES ('JPY', 'Japanese Yen', '¥');
-INSERT INTO currencies (code, name, sign) VALUES ('GBP', 'British Pound', '£');
-INSERT INTO currencies (code, name, sign) VALUES ('AUD', 'Australian Dollar', 'A$');
-INSERT INTO currencies (code, name, sign) VALUES ('CAD', 'Canadian Dollar', 'C$');
-INSERT INTO currencies (code, name, sign) VALUES ('CHF', 'Swiss Franc', 'CHF');
-INSERT INTO currencies (code, name, sign) VALUES ('CNY', 'Chinese Yuan', '¥');
-INSERT INTO currencies (code, name, sign) VALUES ('RUB', 'Russian Ruble', '₽');
-INSERT INTO currencies (code, name, sign) VALUES ('UAH', 'Ukrainian Hryvnia', '₴');
+INSERT INTO currencies (code, fullname, sign) VALUES ('USD', 'United States Dollar', '$');
+INSERT INTO currencies (code, fullname, sign) VALUES ('EUR', 'Euro', '€');
+INSERT INTO currencies (code, fullname, sign) VALUES ('JPY', 'Japanese Yen', '¥');
+INSERT INTO currencies (code, fullname, sign) VALUES ('GBP', 'British Pound', '£');
+INSERT INTO currencies (code, fullname, sign) VALUES ('AUD', 'Australian Dollar', 'A$');
+INSERT INTO currencies (code, fullname, sign) VALUES ('CAD', 'Canadian Dollar', 'C$');
+INSERT INTO currencies (code, fullname, sign) VALUES ('CHF', 'Swiss Franc', 'CHF');
+INSERT INTO currencies (code, fullname, sign) VALUES ('CNY', 'Chinese Yuan', '¥');
+INSERT INTO currencies (code, fullname, sign) VALUES ('RUB', 'Russian Ruble', '₽');
+INSERT INTO currencies (code, fullname, sign) VALUES ('UAH', 'Ukrainian Hryvnia', '₴');
 
 INSERT INTO conversion_rates (base_currency, target_currency, rate) VALUES (1, 2, 0.85); -- USD to EUR
 INSERT INTO conversion_rates (base_currency, target_currency, rate) VALUES (1, 3, 110.15); -- USD to JPY
