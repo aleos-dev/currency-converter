@@ -4,11 +4,8 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.flywaydb.core.Flyway;
 
-import javax.management.RuntimeErrorException;
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Properties;
 
 public final class DbUtil {
@@ -19,27 +16,41 @@ public final class DbUtil {
     }
 
     static {
+        DATA_SOURCE = initDataSource();
+        runFlywayMigration(DATA_SOURCE);
+    }
+
+    public static DataSource getDataSource() {
+        return DATA_SOURCE;
+    }
+
+    public static DataSource getTestDataSource() {
+
+        var dataSource = initDataSource();
+        runFlywayMigration(dataSource);
+        return dataSource;
+    }
+
+    private static DataSource initDataSource() {
+
         try {
             Properties properties = new Properties();
             properties.load(DbUtil.class.getClassLoader().getResourceAsStream("database.properties"));
 
             HikariConfig hikariConfig = new HikariConfig(properties);
 
-            DATA_SOURCE = new HikariDataSource(hikariConfig);
-
-            Flyway flyway = Flyway.configure().dataSource(DATA_SOURCE).load();
-            flyway.migrate();
+            return new HikariDataSource(hikariConfig);
         } catch (IOException e) {
-            throw new ExceptionInInitializerError(
-                    "Failed to initialize DataSource due to IOException" + e.getMessage());
+            throw new ExceptionInInitializerError("Failed to initialize DataSource" + e.getMessage());
         }
     }
 
-    public static Connection getConnection() {
-        try {
-            return DATA_SOURCE.getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeErrorException(new Error("Database access error was occurred, application is exit"));
-        }
+    private static void runFlywayMigration(DataSource dataSource) {
+
+        Flyway flyway = Flyway.configure()
+                .dataSource(dataSource)
+                .load();
+
+        flyway.migrate();
     }
 }
