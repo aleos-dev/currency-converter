@@ -1,32 +1,30 @@
 package com.aleos;
 
-import org.flywaydb.core.Flyway;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.sql.DataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class FlywayMigrationTest {
+class FlywayMigrationTest {
 
     private DataSource dataSource;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl("jdbc:sqlite::memory:");
         dataSource = new HikariDataSource(hikariConfig);
 
-        // Configure Flyway
         Flyway flyway = Flyway.configure()
                 .dataSource(dataSource)
                 .locations("classpath:db/migration")
@@ -37,7 +35,7 @@ public class FlywayMigrationTest {
     }
 
     @Test
-    public void testMigrations() throws SQLException {
+    void testMigrations() throws SQLException {
         try (Connection connection = dataSource.getConnection();
              Statement stmt = connection.createStatement()) {
 
@@ -46,7 +44,7 @@ public class FlywayMigrationTest {
             assertTrue(rs.next());
 
             // Check if the table has the expected number of rows
-            rs = stmt.executeQuery("SELECT COUNT(*) AS rowcount FROM Currencies");
+            rs = stmt.executeQuery("SELECT COUNT(*) AS rowcount FROM currencies");
             rs.next();
             int count = rs.getInt("rowcount");
             assertEquals(10, count);
