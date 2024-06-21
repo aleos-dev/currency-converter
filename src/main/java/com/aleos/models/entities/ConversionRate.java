@@ -1,14 +1,22 @@
 package com.aleos.models.entities;
 
+import lombok.*;
+
 import java.math.BigDecimal;
 
-public class ConversionRate {
+
+@Getter
+@Setter
+@EqualsAndHashCode(of = "id")
+@NoArgsConstructor
+@AllArgsConstructor
+public class ConversionRate implements Entity<Integer> {
 
     Integer id;
 
-    Currency from;
+    Currency baseCurrency;
 
-    Currency to;
+    Currency targetCurrency;
 
     BigDecimal rate;
 }
