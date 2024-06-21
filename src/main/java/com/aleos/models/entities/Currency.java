@@ -1,10 +1,18 @@
 package com.aleos.models.entities;
 
-public class Currency {
+import lombok.*;
+
+@Getter
+@Setter
+@EqualsAndHashCode(of = "id")
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+public class Currency implements Entity<Integer> {
 
     Integer id;
 
-    String name;
+    String fullname;
 
     String code;
 
