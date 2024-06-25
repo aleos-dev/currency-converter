@@ -7,8 +7,4 @@ public class UniqueConstraintViolationException extends DaoOperationException {
     public UniqueConstraintViolationException(String message, SQLException e) {
         super(message, e);
     }
-
-    public UniqueConstraintViolationException(String message) {
-        super(message);
-    }
 }
