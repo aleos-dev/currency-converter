@@ -30,7 +30,8 @@ class CurrencyDaoTest {
         currencyDao.save(currency);
 
         Optional<Currency> found = currencyDao.findByCode("UST");
-        assertCurrency(found, "US TEST", "UST", "$");
+        assertTrue(found.isPresent(), "Currency should be present");
+        assertCurrency(found.get(), "US TEST", "UST", "$");
     }
 
     @Test
@@ -51,15 +52,17 @@ class CurrencyDaoTest {
 
         Optional<Currency> currency = currencyDao.findById(founded.getId());
 
-        assertCurrency(currency, "United States TEST", "UST", "$");
+        assertTrue(currency.isPresent(), "Currency should be present");
+        assertCurrency(currency.get(), "United States TEST", "UST", "$");
     }
 
     @Test
     void testFindCurrencyByCode() throws SQLException {
-        insertCurrency("United States TEST", "UST", "$");
+        insertCurrency("United States TEST", "USV", "#");
 
         Optional<Currency> currency = currencyDao.findByCode("UST");
-        assertCurrency(currency, "United States TEST", "UST", "$");
+        assertTrue(currency.isPresent(), "Currency should be present");
+        assertCurrency(currency.get(), "United States TEST", "USV", "#");
     }
 
     @Test
@@ -71,7 +74,8 @@ class CurrencyDaoTest {
         currencyDao.update(currency);
 
         Optional<Currency> updatedCurrency = currencyDao.findById(currency.getId());
-        assertCurrency(updatedCurrency, "CHANGED", "UST", "$");
+        assertTrue(updatedCurrency.isPresent(), "Currency should be present");
+        assertCurrency(updatedCurrency.get(), "CHANGED", "UST", "$");
     }
 
     @Test
@@ -87,17 +91,14 @@ class CurrencyDaoTest {
 
     private void insertCurrency(String fullname, String code, String sign) throws SQLException {
         try (Connection connection = dataSource.getConnection()) {
-            String query = String.format("INSERT INTO currencies (fullname, code, sign) VALUES ('%s', '%s', '%s')", fullname, code, sign);
+            String query = String.format("INSERT INTO currencies (fullname, code, rate) VALUES ('%s', '%s', '%s')", fullname, code, sign);
             connection.createStatement().execute(query);
         }
     }
 
-    private void assertCurrency(Optional<Currency> currency, String expectedFullname, String expectedCode, String expectedSign) {
-        assertTrue(currency.isPresent(), "Currency should be present");
-        currency.ifPresent(c -> {
-            assertEquals(expectedFullname, c.getFullname(), "Fullname should match");
-            assertEquals(expectedCode, c.getCode(), "Code should match");
-            assertEquals(expectedSign, c.getSign(), "Sign should match");
-        });
+    private void assertCurrency(Currency currency, String expectedFullname, String expectedCode, String expectedSign) {
+        assertEquals(expectedFullname, currency.getFullname(), "Fullname should match");
+        assertEquals(expectedCode, currency.getCode(), "Code should match");
+        assertEquals(expectedSign, currency.getSign(), "Sign should match");
     }
 }
