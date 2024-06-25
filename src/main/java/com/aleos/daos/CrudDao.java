@@ -177,22 +177,22 @@ public abstract class CrudDao<E extends Entity<K>, K> {
 
     protected abstract void populateStatementWithParameters(PreparedStatement statement, E entity) throws SQLException;
 
-    private List<E> findAllEntities(Connection connection) throws SQLException {
-
-        try (PreparedStatement statement = createSelectAllStatement(connection)) {
-
-            var resultSet = statement.executeQuery();
-            return convertResultSetToList(resultSet);
-        }
-    }
-
-    private Optional<E> findEntityById(K id, Connection connection) throws SQLException {
+    protected Optional<E> findEntityById(K id, Connection connection) throws SQLException {
 
         try (var statement = createFindByIdStatement(id, connection)) {
 
             ResultSet resultSet = statement.executeQuery();
 
             return mapSingleResult(resultSet);
+        }
+    }
+
+    protected List<E> findAllEntities(Connection connection) throws SQLException {
+
+        try (PreparedStatement statement = createSelectAllStatement(connection)) {
+
+            var resultSet = statement.executeQuery();
+            return convertResultSetToList(resultSet);
         }
     }
 }

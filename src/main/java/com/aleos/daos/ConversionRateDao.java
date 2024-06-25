@@ -1,27 +1,35 @@
 package com.aleos.daos;
 
+import com.aleos.exceptions.daos.DaoOperationException;
 import com.aleos.models.entities.ConversionRate;
 import com.aleos.models.entities.Currency;
 import com.aleos.util.SQLiteExceptionResolver;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Logger;
 
-import static java.sql.Statement.*;
+import static java.sql.Statement.RETURN_GENERATED_KEYS;
+import static java.util.Objects.nonNull;
+import static java.util.logging.Level.SEVERE;
 
 public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
 
-    private static final String INSERT_BY_ID_SQL =
+    private static final Logger LOGGER = Logger.getLogger(ConversionRateDao.class.getName());
+
+    private static final String INSERT_SQL =
             "INSERT INTO conversion_rates (base_currency_id, target_currency_id, rate) values (?, ?, ?);";
 
-    private static final String INSERT_BY_CURRENCY_CODES_SQL =
-            """
-                    INSERT INTO conversion_rates (base_currency_id, target_currency_id, rate)
-                    VALUES ((SELECT id FROM currencies WHERE code = ?), (SELECT id FROM currencies WHERE code = ?), ?)
-                    """;
+    private static final String INSERT_WITH_CURRENCY_CODES_AS_FOREIGN_KEYS_SQL = """
+            INSERT INTO conversion_rates (base_currency_id, target_currency_id, rate)
+            VALUES ((SELECT id FROM currencies WHERE code = ?), (SELECT id FROM currencies WHERE code = ?), ?)
+            """;
 
     private static final String SELECT_ALL_SQL = """
             SELECT
@@ -42,20 +50,19 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
 
     private static final String SELECT_BY_ID_SQL = String.format("%s %s", SELECT_ALL_SQL, "WHERE cr.id = ?;");
 
-    private static final String SELECT_BY_CODE_SQL =
+    private static final String SELECT_BY_CURRENCY_CODES_SQL =
             String.format("%s %s", SELECT_ALL_SQL, "WHERE base_cur.code = ? AND target_cur.code = ?;");
 
     private static final String UPDATE_BY_ID_SQL =
             "UPDATE conversion_rates SET base_currency_id = ?, target_currency_id = ?, rate = ? WHERE id = ?;";
 
-    private static final String UPDATE_RATE_BY_CURRENCY_CODES_SQL =
-            """
-                    UPDATE conversion_rates cr
-                    JOIN currencies bc ON cr.base_currency_id = bc.id
-                    JOIN currencies tc ON cr.target_currency_id = tc.id
-                    SET cr.rate = ?
-                    WHERE bc.code = ? AND tc.code = ?
-                    """;
+    private static final String UPDATE_RATE_BY_CURRENCY_CODES_SQL = """
+            UPDATE conversion_rates cr
+            JOIN currencies bc ON cr.base_currency_id = bc.id
+            JOIN currencies tc ON cr.target_currency_id = tc.id
+            SET cr.rate = ?
+            WHERE bc.code = ? AND tc.code = ?
+            """;
 
     private static final String DELETE_BY_ID_SQL = "DELETE FROM conversion_rates WHERE id = ?;";
 
@@ -63,21 +70,29 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
         super(dataSource);
     }
 
-    protected Integer save(String baseCurrency, String tartgetCurrency, BigDecimal rate) {
+    public ConversionRate saveAndReturn(String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate) {
 
-        try (var connection = dataSource.getConnection();
-             var statement =
-                     connection.prepareStatement(INSERT_BY_CURRENCY_CODES_SQL, RETURN_GENERATED_KEYS)) {
+        Connection connection = null;
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
 
-            populateInsertStatementByCodes(statement, baseCurrency, tartgetCurrency, rate);
+            var conversionRate = saveAndRetrieveConversionRate(baseCurrencyCode, targetCurrencyCode, rate, connection);
+            connection.commit();
 
-            statement.executeUpdate();
-
-            return fetchGeneratedId(statement);
+            return conversionRate;
 
         } catch (SQLException e) {
-            throw SQLiteExceptionResolver.wrapException(e, String.format(
-                    "Error saving conversion rate with code %s%s", baseCurrency, tartgetCurrency));
+            throw SQLiteExceptionResolver
+                    .wrapException(e, "Unexpected error under saveAndReturnInstance method operation.");
+        } finally {
+            if (nonNull(connection)) {
+                try {
+                    connection.setAutoCommit(true);
+                } catch (SQLException e) {
+                    LOGGER.log(SEVERE, "Unexpected error during setAutoCommit flag to true.");
+                }
+            }
         }
     }
 
@@ -114,7 +129,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
     protected PreparedStatement createSaveStatement(ConversionRate newConversionRate, Connection connection)
             throws SQLException {
 
-        var statement = connection.prepareStatement(INSERT_BY_ID_SQL, RETURN_GENERATED_KEYS);
+        var statement = connection.prepareStatement(INSERT_SQL, RETURN_GENERATED_KEYS);
         populateStatementWithParameters(statement, newConversionRate);
 
         return statement;
@@ -156,7 +171,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
     protected PreparedStatement createFindByCodeStatement(String code, Connection connection) throws SQLException {
 
         var statement =
-                connection.prepareStatement(SELECT_BY_CODE_SQL, RETURN_GENERATED_KEYS);
+                connection.prepareStatement(SELECT_BY_CURRENCY_CODES_SQL, RETURN_GENERATED_KEYS);
         statement.setString(1, code);
 
         return statement;
@@ -229,6 +244,47 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
             ResultSet resultSet = statement.executeQuery();
 
             return mapSingleResult(resultSet);
+        }
+    }
+
+    private ConversionRate saveAndRetrieveConversionRate(String baseCurrencyCode,
+                                                         String targetCurrencyCode,
+                                                         BigDecimal rate,
+                                                         Connection connection) throws SQLException {
+        try {
+            int conversionRateId = insertConversionRate(baseCurrencyCode, targetCurrencyCode, rate, connection);
+
+            Optional<ConversionRate> result = findEntityById(conversionRateId, connection);
+
+            return result.orElseThrow(() -> new DaoOperationException(
+                    String.format("Unexpected result under saveAndReturnInstance method operation. " +
+                                  "Saved instance with id = %s is not found in the database.", conversionRateId)));
+
+        } catch (SQLException e) {
+            connection.rollback();
+            throw SQLiteExceptionResolver.wrapException(e,
+                    String.format("Error performing saveAndRetrieveConversionRate method with base currency code: %s, " +
+                                  "target currency code: %s and rate: %s", baseCurrencyCode, targetCurrencyCode, rate));
+
+        } catch (DaoOperationException e) {
+            connection.rollback();
+            throw e;
+        }
+    }
+
+    private int insertConversionRate(String baseCurrencyCode,
+                                     String targetCurrencyCode,
+                                     BigDecimal rate,
+                                     Connection connection) throws SQLException {
+
+        try (var statement =
+                     connection.prepareStatement(INSERT_WITH_CURRENCY_CODES_AS_FOREIGN_KEYS_SQL, RETURN_GENERATED_KEYS)) {
+
+            populateInsertStatementByCodes(statement, baseCurrencyCode, targetCurrencyCode, rate);
+
+            statement.executeUpdate();
+
+            return fetchGeneratedId(statement);
         }
     }
 }
