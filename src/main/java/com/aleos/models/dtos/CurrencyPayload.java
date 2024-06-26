@@ -1,7 +1,6 @@
 package com.aleos.models.dtos;
 
-public record CurrencyResponse(
-        Integer id,
+public record CurrencyPayload(
         String name,
         String code,
         String sign
