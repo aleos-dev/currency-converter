@@ -1,7 +1,7 @@
 package com.aleos.daos;
 
+import com.aleos.exceptions.daos.DaoOperationException;
 import com.aleos.models.entities.Currency;
-import com.aleos.util.SQLiteExceptionResolver;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -14,14 +14,15 @@ public class CurrencyDao extends CrudDao<Currency, Integer> {
 
     private static final String SELECT_ALL_SQL = "SELECT id, fullname, code, sign FROM currencies;";
 
-    private static final String SELECT_BY_ID_SQL = "SELECT id, fullname, code, sign FROM currencies WHERE id = ?";
+    private static final String SELECT_BY_ID_SQL = "SELECT id, fullname, code, sign FROM currencies WHERE id = ?;";
 
-    private static final String SELECT_BY_CODE_SQL = "SELECT id, fullname, code, sign FROM currencies WHERE code = ?";
+    private static final String SELECT_BY_CODE_SQL =
+            "SELECT id, fullname, code, sign FROM currencies WHERE code = ?;";
 
-    private static final String UPDATE_CURRENCY_SQL =
+    private static final String UPDATE_BY_ID_SQL =
             "UPDATE currencies SET fullname = ?, code = ? , sign = ? WHERE id = ?;";
 
-    private static final String DELETE_BY_ID_SQL = "DELETE FROM currencies WHERE id = ?";
+    private static final String DELETE_BY_ID_SQL = "DELETE FROM currencies WHERE id = ?;";
 
     public CurrencyDao(DataSource dataSource) {
         super(dataSource);
@@ -36,7 +37,7 @@ public class CurrencyDao extends CrudDao<Currency, Integer> {
             return findEntityByCode(code, connection);
 
         } catch (SQLException e) {
-            throw SQLiteExceptionResolver.wrapException(e, "Error during findByCode request process");
+            throw new DaoOperationException(e.getMessage(), e);
         }
     }
 
@@ -59,10 +60,11 @@ public class CurrencyDao extends CrudDao<Currency, Integer> {
     }
 
     @Override
-    protected PreparedStatement createUpdateStatement(Currency entity, Connection connection) throws SQLException {
+    protected PreparedStatement createUpdateStatement(Currency currency, Connection connection) throws SQLException {
 
-        var statement = connection.prepareStatement(UPDATE_CURRENCY_SQL);
-        populateStatementWithParameters(statement, entity);
+        var statement = connection.prepareStatement(UPDATE_BY_ID_SQL);
+        populateStatementWithParameters(statement, currency);
+        statement.setInt(4, currency.getId());
 
         return statement;
     }
@@ -91,20 +93,15 @@ public class CurrencyDao extends CrudDao<Currency, Integer> {
     }
 
     @Override
-    protected Currency mapRowToEntity(ResultSet rs) {
+    protected Currency mapRowToEntity(ResultSet rs) throws SQLException {
 
-        try {
-            var currency = new Currency();
-            currency.setId(rs.getInt("id"));
-            currency.setFullname(rs.getString("fullname"));
-            currency.setCode(rs.getString("code"));
-            currency.setSign(rs.getString("rate"));
+        var currency = new Currency();
+        currency.setId(rs.getInt("id"));
+        currency.setFullname(rs.getString("fullname"));
+        currency.setCode(rs.getString("code"));
+        currency.setSign(rs.getString("sign"));
 
-            return currency;
-
-        } catch (SQLException e) {
-            throw SQLiteExceptionResolver.wrapException(e, "Cannot parse row to create Currency instance");
-        }
+        return currency;
     }
 
     @Override
@@ -114,7 +111,6 @@ public class CurrencyDao extends CrudDao<Currency, Integer> {
         statement.setString(1, currency.getFullname());
         statement.setString(2, currency.getCode());
         statement.setString(3, currency.getSign());
-        statement.setInt(4, currency.getId());
     }
 
     private Optional<Currency> findEntityByCode(String code, Connection connection) throws SQLException {

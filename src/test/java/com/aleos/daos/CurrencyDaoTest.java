@@ -20,16 +20,19 @@ class CurrencyDaoTest {
 
     @BeforeEach
     public void init() {
+
         dataSource = DbUtil.getTestDataSource();
         currencyDao = new CurrencyDao(dataSource);
     }
 
     @Test
     void testSaveCurrency() {
+
         Currency currency = new Currency(null, "US TEST", "UST", "$");
         currencyDao.save(currency);
 
         Optional<Currency> found = currencyDao.findByCode("UST");
+
         assertTrue(found.isPresent(), "Currency should be present");
         assertCurrency(found.get(), "US TEST", "UST", "$");
     }
@@ -47,6 +50,7 @@ class CurrencyDaoTest {
 
     @Test
     void testFindCurrencyById() throws SQLException {
+
         insertCurrency("United States TEST", "UST", "$");
         var founded = currencyDao.findByCode("UST").orElseThrow();
 
@@ -58,9 +62,11 @@ class CurrencyDaoTest {
 
     @Test
     void testFindCurrencyByCode() throws SQLException {
+
         insertCurrency("United States TEST", "USV", "#");
 
-        Optional<Currency> currency = currencyDao.findByCode("UST");
+        Optional<Currency> currency = currencyDao.findByCode("USV");
+
         assertTrue(currency.isPresent(), "Currency should be present");
         assertCurrency(currency.get(), "United States TEST", "USV", "#");
     }
@@ -91,7 +97,7 @@ class CurrencyDaoTest {
 
     private void insertCurrency(String fullname, String code, String sign) throws SQLException {
         try (Connection connection = dataSource.getConnection()) {
-            String query = String.format("INSERT INTO currencies (fullname, code, rate) VALUES ('%s', '%s', '%s')", fullname, code, sign);
+            String query = String.format("INSERT INTO currencies (fullname, code, sign) VALUES ('%s', '%s', '%s')", fullname, code, sign);
             connection.createStatement().execute(query);
         }
     }

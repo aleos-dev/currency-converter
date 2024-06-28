@@ -28,14 +28,14 @@ class ConversionRateDaoTest {
 
     @Test
     void testSaveConversionRate() {
-        Currency usd = currencyDao.findByCode("JPY").orElseThrow();
-        Currency eur = currencyDao.findByCode("RUB").orElseThrow();
+        Currency jpy = currencyDao.findByCode("JPY").orElseThrow();
+        Currency rub = currencyDao.findByCode("RUB").orElseThrow();
 
-        ConversionRate conversionRate = new ConversionRate(null, usd, eur, BigDecimal.valueOf(0.85));
+        ConversionRate conversionRate = new ConversionRate(null, jpy, rub, BigDecimal.valueOf(0.85));
         conversionRateDao.save(conversionRate);
 
         Optional<ConversionRate> found = conversionRateDao.findByCode("JPYRUB");
-        assertConversionRate(found.orElseThrow(), usd.getId(), eur.getId(), BigDecimal.valueOf(0.85));
+        assertConversionRate(found.orElseThrow(), jpy.getId(), rub.getId(), BigDecimal.valueOf(0.85));
     }
 
     @Test

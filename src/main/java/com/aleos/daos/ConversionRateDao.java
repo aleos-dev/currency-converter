@@ -3,7 +3,6 @@ package com.aleos.daos;
 import com.aleos.exceptions.daos.DaoOperationException;
 import com.aleos.models.entities.ConversionRate;
 import com.aleos.models.entities.Currency;
-import com.aleos.util.SQLiteExceptionResolver;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -83,8 +82,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
             return conversionRate;
 
         } catch (SQLException e) {
-            throw SQLiteExceptionResolver
-                    .wrapException(e, "Unexpected error under saveAndReturnInstance method operation.");
+            throw new DaoOperationException(e.getMessage(), e);
         } finally {
             if (nonNull(connection)) {
                 try {
@@ -105,7 +103,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
             return findEntityByCode(code, connection);
 
         } catch (SQLException e) {
-            throw SQLiteExceptionResolver.wrapException(e, "Error during findByCode request process");
+            throw new DaoOperationException(e.getMessage(), e);
         }
     }
 
@@ -119,11 +117,9 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
             executeUpdateStatement(String.join("", baseCurrencyCode, targetCurrencyCode), statement);
 
         } catch (SQLException e) {
-            throw SQLiteExceptionResolver.wrapException(e,
-                    "Error updating %s%s conversion rate.".formatted(baseCurrencyCode, targetCurrencyCode));
+            throw new DaoOperationException(e.getMessage(), e);
         }
     }
-
 
     @Override
     protected PreparedStatement createSaveStatement(ConversionRate newConversionRate, Connection connection)
@@ -139,7 +135,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
     protected PreparedStatement createFindByIdStatement(Integer id, Connection connection) throws SQLException {
 
         var statement = connection.prepareStatement(SELECT_BY_ID_SQL, RETURN_GENERATED_KEYS);
-        statement.setInt(4, id);
+        statement.setInt(1, id);
 
         return statement;
     }
@@ -150,6 +146,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
 
         var statement = connection.prepareStatement(UPDATE_BY_ID_SQL);
         populateStatementWithParameters(statement, conversionRate);
+        statement.setInt(4, conversionRate.getId());
 
         return statement;
     }
@@ -172,38 +169,34 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
 
         var statement =
                 connection.prepareStatement(SELECT_BY_CURRENCY_CODES_SQL, RETURN_GENERATED_KEYS);
-        statement.setString(1, code);
+        statement.setString(1, code.substring(0, 3));
+        statement.setString(2, code.substring(3, 6));
 
         return statement;
     }
 
     @Override
-    protected ConversionRate mapRowToEntity(ResultSet rs) {
+    protected ConversionRate mapRowToEntity(ResultSet rs) throws SQLException {
 
-        try {
-            var baseCurrency = new Currency();
-            baseCurrency.setId(rs.getInt("cr_base_currency_id"));
-            baseCurrency.setFullname(rs.getString("base_cur_fullname"));
-            baseCurrency.setCode(rs.getString("base_cur_code"));
-            baseCurrency.setSign(rs.getString("base_cur_sign"));
+        var baseCurrency = new Currency();
+        baseCurrency.setId(rs.getInt("cr_base_currency_id"));
+        baseCurrency.setFullname(rs.getString("base_cur_fullname"));
+        baseCurrency.setCode(rs.getString("base_cur_code"));
+        baseCurrency.setSign(rs.getString("base_cur_sign"));
 
-            var targetCurrency = new Currency();
-            targetCurrency.setId(rs.getInt("cr_target_currency_id"));
-            targetCurrency.setFullname(rs.getString("target_cur_fullname"));
-            targetCurrency.setCode(rs.getString("target_cur_code"));
-            targetCurrency.setSign(rs.getString("target_cur_sign"));
+        var targetCurrency = new Currency();
+        targetCurrency.setId(rs.getInt("cr_target_currency_id"));
+        targetCurrency.setFullname(rs.getString("target_cur_fullname"));
+        targetCurrency.setCode(rs.getString("target_cur_code"));
+        targetCurrency.setSign(rs.getString("target_cur_sign"));
 
-            var conversionRate = new ConversionRate();
-            conversionRate.setId(rs.getInt("cr_id"));
-            conversionRate.setBaseCurrency(baseCurrency);
-            conversionRate.setTargetCurrency(targetCurrency);
-            conversionRate.setRate(rs.getBigDecimal("cr_rate"));
+        var conversionRate = new ConversionRate();
+        conversionRate.setId(rs.getInt("cr_id"));
+        conversionRate.setBaseCurrency(baseCurrency);
+        conversionRate.setTargetCurrency(targetCurrency);
+        conversionRate.setRate(rs.getBigDecimal("cr_rate"));
 
-            return conversionRate;
-
-        } catch (SQLException e) {
-            throw SQLiteExceptionResolver.wrapException(e, "Cannot parse row to create ConversionRate instance");
-        }
+        return conversionRate;
     }
 
     @Override
@@ -260,13 +253,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
                     String.format("Unexpected result under saveAndReturnInstance method operation. " +
                                   "Saved instance with id = %s is not found in the database.", conversionRateId)));
 
-        } catch (SQLException e) {
-            connection.rollback();
-            throw SQLiteExceptionResolver.wrapException(e,
-                    String.format("Error performing saveAndRetrieveConversionRate method with base currency code: %s, " +
-                                  "target currency code: %s and rate: %s", baseCurrencyCode, targetCurrencyCode, rate));
-
-        } catch (DaoOperationException e) {
+        } catch (SQLException | DaoOperationException e) {
             connection.rollback();
             throw e;
         }
