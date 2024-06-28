@@ -25,7 +25,6 @@ public class CurrenciesServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
 
         super.init(config);
-
         currencyService = (CurrencyService) config.getServletContext()
                 .getAttribute(AttributeNameUtil.getName(CurrencyService.class));
     }
@@ -42,7 +41,7 @@ public class CurrenciesServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
 
-        CurrencyPayload payload = (CurrencyPayload) req.getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
+        var payload = (CurrencyPayload) req.getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
 
         Currency saved = currencyService.save(payload);
 
