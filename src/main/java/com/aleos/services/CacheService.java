@@ -20,4 +20,8 @@ public class CacheService {
     public boolean contains(String key) {
         return cache.containsKey(key);
     }
+
+    public void remove(String cacheKey) {
+        cache.remove(cacheKey);
+    }
 }
