@@ -1,8 +1,10 @@
 package com.aleos.servlets.filters;
 
+import com.aleos.exceptions.daos.DaoOperationException;
 import com.aleos.exceptions.servlets.HttpResponseWritingException;
 import com.aleos.exceptions.servlets.WrappedJsonProcessingException;
 import com.aleos.models.dtos.ErrorResponse;
+import com.aleos.util.AttributeNameUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,8 +23,8 @@ public class ExceptionHandlingFilter implements Filter {
     public void init(FilterConfig filterConfig) throws ServletException {
 
         Filter.super.init(filterConfig);
-
-        objectMapper = (ObjectMapper) filterConfig.getServletContext().getAttribute("objectMapper");
+        objectMapper = (ObjectMapper) filterConfig.getServletContext()
+                .getAttribute(AttributeNameUtil.getName(ObjectMapper.class));
     }
 
     @Override
@@ -33,16 +35,17 @@ public class ExceptionHandlingFilter implements Filter {
             chain.doFilter(request, response);
 
         } catch (HttpResponseWritingException
-                 | WrappedJsonProcessingException e) {
+                 | WrappedJsonProcessingException
+                 | DaoOperationException e) {
             handleException((HttpServletResponse) response, e);
         } catch (Exception e) {
             handleException((HttpServletResponse) response, new RuntimeException("Unexpected server error", e));
         }
     }
 
-    private void handleException(HttpServletResponse response, RuntimeException e) throws IOException {
+    private void handleException(HttpServletResponse response, Exception e) throws IOException {
 
-        LOGGER.log(Level.SEVERE, e.getMessage(), e);
+        LOGGER.log(Level.ALL, e.getMessage(), e);
 
         String json = objectMapper.writeValueAsString(new ErrorResponse(e.getMessage()));
 
