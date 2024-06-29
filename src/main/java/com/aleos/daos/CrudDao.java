@@ -2,7 +2,6 @@ package com.aleos.daos;
 
 import com.aleos.exceptions.daos.DaoOperationException;
 import com.aleos.models.entities.Entity;
-import com.aleos.util.SQLiteExceptionResolver;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -33,8 +32,7 @@ public abstract class CrudDao<E extends Entity<K>, K> {
             return entity.getId();
 
         } catch (SQLException e) {
-            throw SQLiteExceptionResolver
-                    .wrapException(e, String.format("Error saving %s: %s", entity.getClass().getSimpleName(), entity));
+            throw new DaoOperationException(e.getMessage(), e);
         }
     }
 
@@ -45,8 +43,7 @@ public abstract class CrudDao<E extends Entity<K>, K> {
             return findAllEntities(connection);
 
         } catch (SQLException e) {
-            throw SQLiteExceptionResolver.wrapException(e,
-                    String.format("Error during findAll of %s", this.getClass().getSimpleName()));
+            throw new DaoOperationException(e.getMessage(), e);
         }
     }
 
@@ -59,8 +56,7 @@ public abstract class CrudDao<E extends Entity<K>, K> {
             return findEntityById(id, connection);
 
         } catch (SQLException e) {
-            throw SQLiteExceptionResolver.wrapException(e,
-                    String.format("Error during findById for %s with id: %s", this.getClass().getSimpleName(), id));
+            throw new DaoOperationException(e.getMessage(), e);
         }
     }
 
@@ -73,8 +69,7 @@ public abstract class CrudDao<E extends Entity<K>, K> {
             updateEntity(entity, connection);
 
         } catch (SQLException e) {
-            throw SQLiteExceptionResolver.wrapException(e,
-                    String.format("Error during update %s: %s", this.getClass().getSimpleName(), entity));
+            throw new DaoOperationException(e.getMessage(), e);
         }
     }
 
@@ -87,8 +82,7 @@ public abstract class CrudDao<E extends Entity<K>, K> {
             deleteById(id, connection);
 
         } catch (SQLException e) {
-            throw SQLiteExceptionResolver.wrapException(e,
-                    String.format("Error during delete %s with id: %s", this.getClass().getSimpleName(), id));
+            throw new DaoOperationException(e.getMessage(), e);
         }
     }
 
@@ -173,7 +167,7 @@ public abstract class CrudDao<E extends Entity<K>, K> {
 
     protected abstract PreparedStatement createDeleteStatement(K id, Connection connection) throws SQLException;
 
-    protected abstract E mapRowToEntity(ResultSet resultSet);
+    protected abstract E mapRowToEntity(ResultSet resultSet) throws SQLException;
 
     protected abstract void populateStatementWithParameters(PreparedStatement statement, E entity) throws SQLException;
 
