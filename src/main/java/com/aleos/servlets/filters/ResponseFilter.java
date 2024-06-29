@@ -2,14 +2,17 @@ package com.aleos.servlets.filters;
 
 import com.aleos.exceptions.servlets.HttpResponseWritingException;
 import com.aleos.exceptions.servlets.WrappedJsonProcessingException;
-import com.aleos.servlets.ResponseWrapper;
+import com.aleos.util.AttributeNameUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+
+import static java.util.Objects.nonNull;
 
 public class ResponseFilter implements Filter {
 
@@ -23,49 +26,56 @@ public class ResponseFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) {
+
         ServletContext servletContext = filterConfig.getServletContext();
-        this.objectMapper = (ObjectMapper) servletContext.getAttribute("objectMapper");
+        this.objectMapper = (ObjectMapper) servletContext.getAttribute(AttributeNameUtil.getName(ObjectMapper.class));
     }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 
-        var responseWrapper = getJsonResponseWrapper(response);
-        setInitialHeaders(request, responseWrapper);
+        var httpResponse = ((HttpServletResponse) response);
+        setInitialHeaders(request, httpResponse);
 
-        chain.doFilter(request, responseWrapper);
+        chain.doFilter(request, response);
 
-        prepareResponse(responseWrapper);
+        prepareResponse((HttpServletRequest) request, httpResponse);
     }
 
-    private ResponseWrapper getJsonResponseWrapper(ServletResponse response) {
-        return new ResponseWrapper(((HttpServletResponse) response));
-    }
-
-    private void setInitialHeaders(ServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException {
+    private void setInitialHeaders(ServletRequest request, HttpServletResponse response)
+            throws UnsupportedEncodingException {
 
         request.setCharacterEncoding(UTF_8);
         response.setHeader("Access-Control-Allow-Origin", ALLOW_ORIGIN);
         response.setCharacterEncoding(UTF_8);
     }
 
-    private void prepareResponse(ResponseWrapper responseWrapper) {
+    private void prepareResponse(HttpServletRequest request, HttpServletResponse response) {
 
-        responseWrapper.getResponseObject()
-                .map(this::mapToJson)
-                .ifPresent(json -> writeJson(json, responseWrapper));
+        var responseObject = request.getAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR);
 
-        responseWrapper.setContentType(APPLICATION_JSON);
+        if (nonNull(responseObject)) {
+            var json = mapToJson(responseObject);
+            writeJson(json, response);
+        }
     }
 
-    private void writeJson(String json, ResponseWrapper response) {
+    private void writeJson(String json, HttpServletResponse response) {
 
-        response.writeJson(json);
+        try {
+            response.getWriter().write(json);
+            response.setContentType(APPLICATION_JSON);
+
+        } catch (IOException e) {
+            throw new HttpResponseWritingException("Error writing json response", e);
+        }
     }
 
     private String mapToJson(Object responseOutput) {
+
         try {
             return objectMapper.writeValueAsString(responseOutput);
+
         } catch (JsonProcessingException e) {
             throw new WrappedJsonProcessingException(
                     "Cannot parse object to JSON format: %s".formatted(responseOutput), e);
