@@ -5,7 +5,11 @@ import com.aleos.exceptions.servlets.ContextInitializationException;
 import com.aleos.mappers.CurrencyMapper;
 import com.aleos.services.CacheService;
 import com.aleos.services.CurrencyService;
+import com.aleos.util.AttributeNameUtil;
 import com.aleos.util.DbUtil;
+import com.aleos.validators.ConversionRatePayloadValidator;
+import com.aleos.validators.CurrencyIdentifierPayloadValidator;
+import com.aleos.validators.CurrencyPayloadValidator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
@@ -31,13 +35,16 @@ public class AppInitializerListener implements ServletContextListener {
 
         initializerSet.add(ModelMapper.class);
         initializerSet.add(CurrencyMapper.class);
+        initializerSet.add(CurrencyPayloadValidator.class);
+        initializerSet.add(CurrencyIdentifierPayloadValidator.class);
+        initializerSet.add(ConversionRatePayloadValidator.class);
         initializerSet.add(CurrencyDao.class);
         initializerSet.add(CacheService.class);
         initializerSet.add(CurrencyService.class);
 
         for (var clazz : initializerSet) {
             var instance = initializeClass(clazz, sce);
-            var attributeName = getAttributeName(clazz);
+            var attributeName = AttributeNameUtil.getName(clazz);
             sce.getServletContext().setAttribute(attributeName, instance);
         }
     }
@@ -58,7 +65,7 @@ public class AppInitializerListener implements ServletContextListener {
                     Object[] parameters = new Object[parameterTypes.length];
 
                     for (int i = 0; i < parameterTypes.length; i++) {
-                        String attributeName = getAttributeName(parameterTypes[i]);
+                        String attributeName = AttributeNameUtil.getName(parameterTypes[i]);
                         parameters[i] = sce.getServletContext().getAttribute(attributeName);
                     }
 
@@ -77,17 +84,11 @@ public class AppInitializerListener implements ServletContextListener {
         }
     }
 
-    private String getAttributeName(Class<?> clazz) {
-
-        String simpleName = clazz.getSimpleName();
-        return Character.toLowerCase(simpleName.charAt(0)) + simpleName.substring(1);
-    }
-
     private void initDataSource(ServletContextEvent sce) {
 
         // Initialize DataSource separately using the utility class
         DataSource dataSource = DbUtil.getDataSource();
-        String attributeName = getAttributeName(DataSource.class);
+        String attributeName = AttributeNameUtil.getName(DataSource.class);
         sce.getServletContext().setAttribute(attributeName, dataSource);
     }
 
@@ -95,6 +96,7 @@ public class AppInitializerListener implements ServletContextListener {
 
         // Initialize ObjectMapper separately due to complex initialization requirements
         ObjectMapper objectMapper = new ObjectMapper();
-        sce.getServletContext().setAttribute("objectMapper", objectMapper);
+        String attributeName = AttributeNameUtil.getName(ObjectMapper.class);
+        sce.getServletContext().setAttribute(attributeName, objectMapper);
     }
 }
