@@ -22,7 +22,12 @@
 
     <filter>
         <filter-name>CurrencyFilter</filter-name>
-        <filter-class>com.aleos.servlets.filters.CurrencyRequestFilter</filter-class>
+        <filter-class>com.aleos.servlets.filters.CurrencyRequestProcessingFilter</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>CurrenciesFilter</filter-name>
+        <filter-class>com.aleos.servlets.filters.CurrenciesRequestProcessingFilter</filter-class>
     </filter>
 
     <!-- Filter Mappings -->
@@ -44,5 +49,10 @@
     <filter-mapping>
         <filter-name>CurrencyFilter</filter-name>
         <url-pattern>/currency/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>CurrenciesFilter</filter-name>
+        <url-pattern>/currencies</url-pattern>
     </filter-mapping>
 </web-app>
