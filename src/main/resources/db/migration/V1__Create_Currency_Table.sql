@@ -1,8 +1,7 @@
 CREATE TABLE currencies
 (
-    id   INTEGER PRIMARY KEY AUTOINCREMENT,
-    fullname TEXT NOT NULL UNIQUE,
-    code TEXT NOT NULL UNIQUE,
-    sign TEXT NOT NULL,
-    CHECK (length(code) == 3 AND length(fullname) <= 30 AND length(sign) <= 30)
-)
+    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    fullname TEXT NOT NULL CHECK (LENGTH(fullname) BETWEEN 3 AND 30),
+    code     TEXT NOT NULL UNIQUE CHECK (LENGTH(code) == 3),
+    sign     TEXT NOT NULL CHECK (LENGTH(sign) BETWEEN 1 AND 5)
+);
