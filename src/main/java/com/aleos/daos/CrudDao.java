@@ -1,6 +1,7 @@
 package com.aleos.daos;
 
 import com.aleos.exceptions.daos.DaoOperationException;
+import com.aleos.exceptions.daos.EntityNotFoundException;
 import com.aleos.models.entities.Entity;
 
 import javax.sql.DataSource;
@@ -143,8 +144,8 @@ public abstract class CrudDao<E extends Entity<K>, K> {
         int rowsAffected = statement.executeUpdate();
         if (rowsAffected == 0) {
 
-            throw new DaoOperationException(
-                    String.format("ConversionRate with identifier = %s does not exist", identifier));
+            throw new EntityNotFoundException(String.format("%s can't find entity with identifier = %s",
+                    this.getClass().getSimpleName(), identifier));
         }
     }
 
