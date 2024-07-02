@@ -22,12 +22,27 @@
 
     <filter>
         <filter-name>CurrencyFilter</filter-name>
-        <filter-class>com.aleos.servlets.filters.CurrencyRequestProcessingFilter</filter-class>
+        <filter-class>com.aleos.servlets.filters.prerequest.CurrencyFilter</filter-class>
     </filter>
 
     <filter>
         <filter-name>CurrenciesFilter</filter-name>
-        <filter-class>com.aleos.servlets.filters.CurrenciesRequestProcessingFilter</filter-class>
+        <filter-class>com.aleos.servlets.filters.prerequest.CurrenciesFilter</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>ConversionRateFilter</filter-name>
+        <filter-class>com.aleos.servlets.filters.prerequest.ConversionRateFilter</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>ConversionRatesFilter</filter-name>
+        <filter-class>com.aleos.servlets.filters.prerequest.ConversionRatesFilter</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>ConversionFilter</filter-name>
+        <filter-class>com.aleos.servlets.filters.prerequest.ConversionFilter</filter-class>
     </filter>
 
     <!-- Filter Mappings -->
@@ -54,5 +69,20 @@
     <filter-mapping>
         <filter-name>CurrenciesFilter</filter-name>
         <url-pattern>/currencies</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>ConversionRateFilter</filter-name>
+        <url-pattern>/exchangeRate/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>ConversionRatesFilter</filter-name>
+        <url-pattern>/exchangeRates</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>ConversionFilter</filter-name>
+        <url-pattern>/exchange</url-pattern>
     </filter-mapping>
 </web-app>
