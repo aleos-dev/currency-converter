@@ -1,15 +1,18 @@
 package com.aleos.listeners;
 
+import com.aleos.daos.ConversionRateDao;
 import com.aleos.daos.CurrencyDao;
 import com.aleos.exceptions.servlets.ContextInitializationException;
+import com.aleos.mappers.ConversionRateMapper;
 import com.aleos.mappers.CurrencyMapper;
 import com.aleos.services.CacheService;
+import com.aleos.services.ConversionRateService;
+import com.aleos.services.ConversionService;
 import com.aleos.services.CurrencyService;
 import com.aleos.util.AttributeNameUtil;
 import com.aleos.util.DbUtil;
-import com.aleos.validators.ConversionRatePayloadValidator;
-import com.aleos.validators.CurrencyIdentifierPayloadValidator;
-import com.aleos.validators.CurrencyPayloadValidator;
+import com.aleos.validators.ConversionRateValidator;
+import com.aleos.validators.CurrencyValidator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
@@ -35,12 +38,18 @@ public class AppInitializerListener implements ServletContextListener {
 
         initializerSet.add(ModelMapper.class);
         initializerSet.add(CurrencyMapper.class);
-        initializerSet.add(CurrencyPayloadValidator.class);
-        initializerSet.add(CurrencyIdentifierPayloadValidator.class);
-        initializerSet.add(ConversionRatePayloadValidator.class);
+        initializerSet.add(ConversionRateMapper.class);
+
         initializerSet.add(CurrencyDao.class);
+        initializerSet.add(ConversionRateDao.class);
+
         initializerSet.add(CacheService.class);
         initializerSet.add(CurrencyService.class);
+        initializerSet.add(ConversionRateService.class);
+        initializerSet.add(ConversionService.class);
+
+        initializerSet.add(CurrencyValidator.class);
+        initializerSet.add(ConversionRateValidator.class);
 
         for (var clazz : initializerSet) {
             var instance = initializeClass(clazz, sce);
