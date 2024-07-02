@@ -1,7 +1,7 @@
 package com.aleos.mappers;
 
-import com.aleos.models.dtos.CurrencyPayload;
-import com.aleos.models.dtos.CurrencyResponse;
+import com.aleos.models.dtos.in.CurrencyPayload;
+import com.aleos.models.dtos.out.CurrencyResponse;
 import com.aleos.models.entities.Currency;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
