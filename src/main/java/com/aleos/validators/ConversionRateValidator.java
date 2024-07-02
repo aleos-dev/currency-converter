@@ -1,7 +1,7 @@
 package com.aleos.validators;
 
-import com.aleos.models.dtos.ConversionRatePayload;
-import com.aleos.models.dtos.ErrorResponse;
+import com.aleos.models.dtos.in.ConversionRatePayload;
+import com.aleos.models.dtos.out.ErrorResponse;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
@@ -12,11 +12,13 @@ import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 @RequiredArgsConstructor
-public class ConversionRatePayloadValidator implements PayloadValidator<ConversionRatePayload, ErrorResponse> {
+public class ConversionRateValidator implements PayloadValidator<ConversionRatePayload, ErrorResponse> {
 
     private static final BigDecimal RATE_MIN_VALUE = BigDecimal.ZERO;
 
-    private final CurrencyPayloadValidator currencyValidator;
+    private static final String CONVERSION_RATE_CODE_REGEX = "^([a-zA-Z]{6})$";
+
+    private final CurrencyValidator currencyValidator;
 
     @Override
     public List<ErrorResponse> validate(ConversionRatePayload payload) {
@@ -29,7 +31,7 @@ public class ConversionRatePayloadValidator implements PayloadValidator<Conversi
                 .toList();
     }
 
-    private List<ErrorResponse> validateRate(BigDecimal value) {
+    public List<ErrorResponse> validateRate(BigDecimal value) {
 
         return Stream.of(createNonNullBigDecimalValidator(), createRateSignValidator())
                 .map(validator -> validator.apply("Rate", value))
@@ -37,6 +39,19 @@ public class ConversionRatePayloadValidator implements PayloadValidator<Conversi
                 .map(Optional::get)
                 .toList();
     }
+
+    public List<ErrorResponse> validateIdentifier(String identifier) {
+
+        return Stream.of(
+                PayloadValidator.createNonEmptyStringValidator(),
+                PayloadValidator.createPatternValidator(CONVERSION_RATE_CODE_REGEX)
+        )
+                .map(validator -> validator.apply("ConversionRate code", identifier))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
+    }
+
 
     private BiFunction<String, BigDecimal, Optional<ErrorResponse>> createNonNullBigDecimalValidator() {
         return PayloadValidator.createFieldValidator(
