@@ -1,9 +1,10 @@
 package com.aleos.servlets.filters;
 
+import com.aleos.exceptions.servlets.RequestBodyParsingException;
 import com.aleos.exceptions.daos.DaoOperationException;
 import com.aleos.exceptions.servlets.HttpResponseWritingException;
 import com.aleos.exceptions.servlets.WrappedJsonProcessingException;
-import com.aleos.models.dtos.ErrorResponse;
+import com.aleos.models.dtos.out.ErrorResponse;
 import com.aleos.util.AttributeNameUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.*;
@@ -30,22 +31,29 @@ public class ExceptionHandlingFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException {
 
+        var httpResponse = ((HttpServletResponse) response);
         try {
 
             chain.doFilter(request, response);
 
         } catch (HttpResponseWritingException
                  | WrappedJsonProcessingException
-                 | DaoOperationException e) {
+                | DaoOperationException e)
+        {
             handleException((HttpServletResponse) response, e);
+            httpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        } catch (RequestBodyParsingException e) {
+            handleException((HttpServletResponse) response, e);
+            httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         } catch (Exception e) {
             handleException((HttpServletResponse) response, new RuntimeException("Unexpected server error", e));
+            ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
     private void handleException(HttpServletResponse response, Exception e) throws IOException {
 
-        LOGGER.log(Level.ALL, e.getMessage(), e);
+        LOGGER.log(Level.SEVERE, e.getMessage(), e);
 
         String json = objectMapper.writeValueAsString(new ErrorResponse(e.getMessage()));
 
