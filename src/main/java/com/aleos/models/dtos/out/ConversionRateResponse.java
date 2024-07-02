@@ -1,4 +1,4 @@
-package com.aleos.models.dtos;
+package com.aleos.models.dtos.out;
 
 import com.aleos.models.entities.Currency;
 

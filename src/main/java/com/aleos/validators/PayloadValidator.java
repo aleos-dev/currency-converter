@@ -1,6 +1,6 @@
 package com.aleos.validators;
 
-import com.aleos.models.dtos.ErrorResponse;
+import com.aleos.models.dtos.out.ErrorResponse;
 
 import java.util.List;
 import java.util.Optional;

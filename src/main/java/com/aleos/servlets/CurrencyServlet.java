@@ -1,8 +1,7 @@
 package com.aleos.servlets;
 
-import com.aleos.models.dtos.CurrencyIdentifierPayload;
-import com.aleos.models.dtos.CurrencyResponse;
-import com.aleos.models.dtos.ErrorResponse;
+import com.aleos.models.dtos.in.CurrencyIdentifierPayload;
+import com.aleos.models.dtos.out.CurrencyResponse;
 import com.aleos.services.CurrencyService;
 import com.aleos.util.AttributeNameUtil;
 import jakarta.servlet.ServletConfig;
@@ -34,18 +33,19 @@ public class CurrencyServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
 
-        var model = (CurrencyIdentifierPayload) request.getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
+        var payload = (CurrencyIdentifierPayload) request.getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
 
-        Optional<CurrencyResponse> currency = currencyService.findByIdentifier(model);
+        Optional<CurrencyResponse> byIdentifier = currencyService.findByIdentifier(payload);
 
-        if (currency.isPresent()) {
-            request.setAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR, currency.get());
+        if (byIdentifier.isPresent()) {
+            request.setAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR, byIdentifier.get());
             response.setStatus(SC_OK);
+
             return;
         }
 
         request.setAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR,
-                new ErrorResponse("Currency with identifier: %s, does not exist.".formatted(model.identifier())));
+                "Currency with identifier: %s, does not exist.".formatted(payload.identifier()));
         response.setStatus(SC_NOT_FOUND);
     }
 }
