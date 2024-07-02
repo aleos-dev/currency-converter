@@ -2,9 +2,9 @@ package com.aleos.services;
 
 import com.aleos.daos.CurrencyDao;
 import com.aleos.mappers.CurrencyMapper;
-import com.aleos.models.dtos.CurrencyIdentifierPayload;
-import com.aleos.models.dtos.CurrencyPayload;
-import com.aleos.models.dtos.CurrencyResponse;
+import com.aleos.models.dtos.in.CurrencyIdentifierPayload;
+import com.aleos.models.dtos.in.CurrencyPayload;
+import com.aleos.models.dtos.out.CurrencyResponse;
 import com.aleos.models.entities.Currency;
 import lombok.RequiredArgsConstructor;
 

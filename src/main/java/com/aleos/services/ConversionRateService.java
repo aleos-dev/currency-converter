@@ -2,9 +2,9 @@ package com.aleos.services;
 
 import com.aleos.daos.ConversionRateDao;
 import com.aleos.mappers.ConversionRateMapper;
-import com.aleos.models.dtos.ConversionRateIdentifierPayload;
-import com.aleos.models.dtos.ConversionRatePayload;
-import com.aleos.models.dtos.ConversionRateResponse;
+import com.aleos.models.dtos.in.ConversionRateIdentifierPayload;
+import com.aleos.models.dtos.in.ConversionRatePayload;
+import com.aleos.models.dtos.out.ConversionRateResponse;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -38,7 +38,7 @@ public class ConversionRateService {
 
     public void update(ConversionRatePayload payload) {
 
-        conversionRateDao.updateRateByCurrencyCodes(
+        conversionRateDao.updateRate(
                 payload.baseCurrencyCode(), payload.targetCurrencyCode(), payload.rate());
     }
 
