@@ -9,14 +9,19 @@ import com.aleos.services.CacheService;
 import com.aleos.services.ConversionRateService;
 import com.aleos.services.ConversionService;
 import com.aleos.services.CurrencyService;
+import com.aleos.servlets.*;
 import com.aleos.util.AttributeNameUtil;
 import com.aleos.util.DbUtil;
+import com.aleos.util.PropertyUtil;
 import com.aleos.validators.ConversionRateValidator;
 import com.aleos.validators.CurrencyValidator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
+import jakarta.servlet.ServletRegistration;
 import jakarta.servlet.annotation.WebListener;
+import jakarta.servlet.http.HttpServlet;
 import org.modelmapper.ModelMapper;
 
 import javax.sql.DataSource;
@@ -56,6 +61,9 @@ public class AppInitializerListener implements ServletContextListener {
             var attributeName = AttributeNameUtil.getName(clazz);
             sce.getServletContext().setAttribute(attributeName, instance);
         }
+
+        // register servlets manually to dynamically load URL patterns and other configurations from property files
+        registerServlets(sce.getServletContext());
     }
 
     private Object initializeClass(Class<?> clazz, ServletContextEvent sce) {
@@ -107,5 +115,32 @@ public class AppInitializerListener implements ServletContextListener {
         ObjectMapper objectMapper = new ObjectMapper();
         String attributeName = AttributeNameUtil.getName(ObjectMapper.class);
         sce.getServletContext().setAttribute(attributeName, objectMapper);
+    }
+
+    private void registerServlets(ServletContext servletContext) {
+
+        registerServlet(servletContext, AttributeNameUtil.getName(CurrencyServlet.class),
+                new CurrencyServlet(), PropertyUtil.CURRENCY_SERVICE_URL);
+
+        registerServlet(servletContext, AttributeNameUtil.getName(CurrenciesServlet.class),
+                new CurrenciesServlet(), PropertyUtil.CURRENCIES_SERVICE_URL);
+
+        registerServlet(servletContext, AttributeNameUtil.getName(ConversionRateServlet.class),
+                new ConversionRateServlet(), PropertyUtil.CONVERSION_RATE_SERVICE_URL);
+
+        registerServlet(servletContext,AttributeNameUtil.getName(ConversionRatesServlet.class),
+                new ConversionRatesServlet(), PropertyUtil.CONVERSION_RATES_SERVICE_URL);
+
+        registerServlet(servletContext,AttributeNameUtil.getName(ConversionServlet.class),
+                new ConversionServlet(), PropertyUtil.CONVERSION_SERVICE_URL);
+
+        registerServlet(servletContext,AttributeNameUtil.getName(Error404Servlet.class),
+                new Error404Servlet(), PropertyUtil.ERROR_PAGE_404);
+    }
+
+    private void registerServlet(ServletContext servletContext, String name, HttpServlet servlet, String urlPattern) {
+
+        ServletRegistration.Dynamic registration = servletContext.addServlet(name, servlet);
+        registration.addMapping(urlPattern);
     }
 }
