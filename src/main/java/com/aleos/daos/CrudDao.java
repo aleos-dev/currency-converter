@@ -2,6 +2,7 @@ package com.aleos.daos;
 
 import com.aleos.exceptions.daos.DaoOperationException;
 import com.aleos.exceptions.daos.EntityNotFoundException;
+import com.aleos.exceptions.daos.UniqueConstraintViolationException;
 import com.aleos.models.entities.Entity;
 
 import javax.sql.DataSource;
@@ -33,6 +34,9 @@ public abstract class CrudDao<E extends Entity<K>, K> {
             return entity.getId();
 
         } catch (SQLException e) {
+            if (e.getMessage().contains("SQLITE_CONSTRAINT_UNIQUE")) {
+                throw new UniqueConstraintViolationException("Can't be saved due to a unique constraint violation.", e);
+            }
             throw new DaoOperationException(e.getMessage(), e);
         }
     }
