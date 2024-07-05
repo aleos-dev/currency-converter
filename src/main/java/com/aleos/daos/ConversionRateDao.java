@@ -12,15 +12,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
-import static java.util.Objects.nonNull;
-import static java.util.logging.Level.SEVERE;
 
 public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
-
-    private static final Logger LOGGER = Logger.getLogger(ConversionRateDao.class.getName());
 
     private static final String INSERT_SQL =
             "INSERT INTO conversion_rates (base_currency_id, target_currency_id, rate) values (?, ?, ?);";
@@ -140,11 +135,9 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
         super(dataSource);
     }
 
-    public ConversionRate saveAndReturn(String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate) {
+    public ConversionRate saveAndFetch(String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate) {
 
-        Connection connection = null;
-        try {
-            connection = dataSource.getConnection();
+        try (Connection connection = dataSource.getConnection()){
             connection.setAutoCommit(false);
 
             var conversionRate =
@@ -155,14 +148,6 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
 
         } catch (SQLException e) {
             throw new DaoOperationException(e.getMessage(), e);
-        } finally {
-            if (nonNull(connection)) {
-                try {
-                    connection.setAutoCommit(true);
-                } catch (SQLException e) {
-                    LOGGER.log(SEVERE, "Unexpected error during setAutoCommit flag to true.");
-                }
-            }
         }
     }
 
