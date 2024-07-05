@@ -5,6 +5,7 @@ import com.aleos.mappers.ConversionRateMapper;
 import com.aleos.models.dtos.in.ConversionRateIdentifierPayload;
 import com.aleos.models.dtos.in.ConversionRatePayload;
 import com.aleos.models.dtos.out.ConversionRateResponse;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -17,29 +18,23 @@ public class ConversionRateService {
 
     private final ConversionRateMapper mapper;
 
-    public ConversionRateResponse save(ConversionRatePayload payload) {
-
-        var conversionRate = conversionRateDao
-                .saveAndReturn(payload.baseCurrencyCode(), payload.targetCurrencyCode(), payload.rate());
-
-        return mapper.toDto(conversionRate);
+    public ConversionRateResponse save(@NonNull ConversionRatePayload payload) {
+        return mapper.toDto(conversionRateDao.saveAndFetch(
+                payload.baseCurrencyCode(), payload.targetCurrencyCode(), payload.rate()));
     }
 
     public List<ConversionRateResponse> findAll() {
-
         return conversionRateDao.findAll().stream()
                 .map(mapper::toDto)
                 .toList();
     }
 
-    public Optional<ConversionRateResponse> findByCode(ConversionRateIdentifierPayload payload) {
-        return conversionRateDao.findByCode(payload.code()).map(mapper::toDto);
+    public Optional<ConversionRateResponse> findByCode(@NonNull ConversionRateIdentifierPayload payload) {
+        return conversionRateDao.findByCode(payload.identifier()).map(mapper::toDto);
     }
 
-    public void update(ConversionRatePayload payload) {
-
-        conversionRateDao.updateRate(
-                payload.baseCurrencyCode(), payload.targetCurrencyCode(), payload.rate());
+    public void update(@NonNull ConversionRatePayload payload) {
+        conversionRateDao.updateRate(payload.baseCurrencyCode(), payload.targetCurrencyCode(), payload.rate());
     }
 
     public void delete(int id) {

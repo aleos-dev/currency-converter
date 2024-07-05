@@ -1,45 +1,37 @@
 package com.aleos.servlets;
 
 import com.aleos.models.dtos.in.ConversionPayload;
+import com.aleos.models.dtos.out.ConversionResponse;
 import com.aleos.models.dtos.out.ErrorResponse;
 import com.aleos.services.ConversionService;
-import com.aleos.util.AttributeNameUtil;
-import jakarta.servlet.ServletConfig;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@WebServlet("/exchange")
-public class ConversionServlet extends HttpServlet {
+import java.util.Optional;
+import java.util.Set;
 
-    private transient ConversionService conversionService;
+import static com.aleos.servlets.HttpMethod.GET;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
-    @Override
-    public void init(ServletConfig config) throws ServletException {
+public class ConversionServlet extends BaseServlet {
 
-        super.init(config);
-        conversionService = (ConversionService) config.getServletContext()
-                .getAttribute(AttributeNameUtil.getName(ConversionService.class));
-
-    }
+    private static ConversionService conversionService;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
+        Optional<ConversionResponse> byPayload = conversionService.convert(getPayload(req, ConversionPayload.class));
 
-        var conversionPayload = (ConversionPayload) req.getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
+        byPayload.ifPresentOrElse(
+                responseModel -> setResponseModel(req, responseModel),
+                () -> {
+                    setResponseModel(req, new ErrorResponse("Conversion is not possible."));
+                    resp.setStatus(SC_NOT_FOUND);
+                }
+        );
+    }
 
-        var conversionResponseOptional = conversionService.convert(conversionPayload);
-
-        if (conversionResponseOptional.isPresent()) {
-            req.setAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR, conversionResponseOptional.get());
-            resp.setStatus(HttpServletResponse.SC_OK);
-
-            return;
-        }
-
-        req.setAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR, new ErrorResponse("Conversion is not possible."));
-        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+    @Override
+    protected Set<HttpMethod> getSupportedMethods() {
+        return Set.of(GET);
     }
 }

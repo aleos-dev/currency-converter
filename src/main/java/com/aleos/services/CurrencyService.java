@@ -6,10 +6,10 @@ import com.aleos.models.dtos.in.CurrencyIdentifierPayload;
 import com.aleos.models.dtos.in.CurrencyPayload;
 import com.aleos.models.dtos.out.CurrencyResponse;
 import com.aleos.models.entities.Currency;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -19,39 +19,29 @@ public class CurrencyService {
 
     private final CurrencyMapper mapper;
 
-    public Currency save(CurrencyPayload payload) {
-
-        Objects.requireNonNull(payload);
-
+    public CurrencyResponse save(@NonNull CurrencyPayload payload) {
         Currency newCurrency = mapper.toEntity(payload);
         int id = currencyDao.save(newCurrency);
         newCurrency.setId(id);
 
-        return newCurrency;
+        return mapper.toDto(newCurrency);
     }
 
     public List<CurrencyResponse> findAll() {
-
         return currencyDao.findAll().stream()
                 .map(mapper::toDto)
                 .toList();
     }
 
-    public Optional<CurrencyResponse> findByIdentifier(CurrencyIdentifierPayload payload) {
+    public Optional<CurrencyResponse> findByIdentifier(@NonNull CurrencyIdentifierPayload payload) {
+        String isDigitsRegex = "\\d+";
 
-        Objects.requireNonNull(payload);
-
-        if (payload.identifier().matches("\\d+")) {
-            int id = Integer.parseInt(payload.identifier());
-
-            return currencyDao.findById(id).map(mapper::toDto);
-        }
-
-        return currencyDao.findByCode(payload.identifier()).map(mapper::toDto);
+        return payload.identifier().matches(isDigitsRegex)
+                ? currencyDao.findById(Integer.parseInt(payload.identifier())).map(mapper::toDto)
+                : currencyDao.findByCode(payload.identifier()).map(mapper::toDto);
     }
 
-    public void update(int id, CurrencyPayload payload) {
-
+    public void update(int id, @NonNull CurrencyPayload payload) {
         Currency toUpdate = mapper.toEntity(payload);
         toUpdate.setId(id);
 
@@ -59,7 +49,6 @@ public class CurrencyService {
     }
 
     public void delete(int id) {
-
         currencyDao.delete(id);
     }
 }
