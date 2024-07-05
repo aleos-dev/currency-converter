@@ -4,12 +4,12 @@ import com.aleos.daos.ConversionRateDao;
 import com.aleos.models.dtos.in.ConversionPayload;
 import com.aleos.models.dtos.out.ConversionResponse;
 import com.aleos.models.entities.ConversionRate;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.util.Objects;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -17,27 +17,23 @@ public class ConversionService {
 
     private final ConversionRateDao conversionRateDao;
 
-    public Optional<ConversionResponse> convert(ConversionPayload payload) {
-
-        Objects.requireNonNull(payload);
-
+    public Optional<ConversionResponse> convert(@NonNull ConversionPayload payload) {
         String code = String.join("", payload.baseCurrencyCode(), payload.targetCurrencyCode());
 
         return conversionRateDao.findByCode(code)
                 .or(() -> reverseConversion(code))
                 .or(() -> crossConversion(code))
-                .map(rate -> composeConversionResponse(rate, payload.amount()));
+                .map(entity -> composeConversionResponse(entity, payload.amount()));
     }
 
-    private ConversionResponse composeConversionResponse(ConversionRate conversionRate, Double amount) {
-
+    private ConversionResponse composeConversionResponse(ConversionRate conversionRate,
+                                                         Double amount) {
         return new ConversionResponse(
                 conversionRate.getBaseCurrency(),
                 conversionRate.getTargetCurrency(),
                 conversionRate.getRate().setScale(2, RoundingMode.HALF_DOWN).doubleValue(),
                 amount,
-                convert(amount, conversionRate.getRate()
-                )
+                convert(amount, conversionRate.getRate())
         );
     }
 
@@ -46,7 +42,6 @@ public class ConversionService {
     }
 
     private Optional<ConversionRate> reverseConversion(String code) {
-
         Optional<ConversionRate> byCode = conversionRateDao.findByCode(reverseCurrencyCode(code));
 
         return byCode
@@ -59,7 +54,6 @@ public class ConversionService {
     }
 
     private Double convert(Double amount, BigDecimal rate) {
-
         return rate
                 .multiply(BigDecimal.valueOf(amount))
                 .setScale(2, RoundingMode.HALF_DOWN)
@@ -67,7 +61,6 @@ public class ConversionService {
     }
 
     private String reverseCurrencyCode(String code) {
-
         int codeLength = 3;
 
         return code.substring(codeLength) + code.substring(0, codeLength);
