@@ -2,50 +2,36 @@ package com.aleos.servlets;
 
 import com.aleos.models.dtos.in.CurrencyPayload;
 import com.aleos.models.dtos.out.CurrencyResponse;
-import com.aleos.models.entities.Currency;
 import com.aleos.services.CurrencyService;
-import com.aleos.util.AttributeNameUtil;
-import jakarta.servlet.ServletConfig;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 
-@WebServlet("/currencies")
+import static com.aleos.servlets.HttpMethod.GET;
+import static com.aleos.servlets.HttpMethod.POST;
+
 @RequiredArgsConstructor
-public class CurrenciesServlet extends HttpServlet {
+public class CurrenciesServlet extends BaseServlet {
 
-    private transient CurrencyService currencyService;
-
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-
-        super.init(config);
-        currencyService = (CurrencyService) config.getServletContext()
-                .getAttribute(AttributeNameUtil.getName(CurrencyService.class));
-    }
+    private static CurrencyService currencyService;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-
-        List<CurrencyResponse> all = currencyService.findAll();
-
-        req.setAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR, all);
-        resp.setStatus(HttpServletResponse.SC_OK);
+        setResponseModel(req, currencyService.findAll());
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
+        CurrencyResponse responseModel = currencyService.save(getPayload(req, CurrencyPayload.class));
 
-        var payload = (CurrencyPayload) req.getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
-
-        Currency saved = currencyService.save(payload);
-
+        setResponseModel(req, responseModel);
         resp.setStatus(HttpServletResponse.SC_CREATED);
-        req.setAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR, saved);
+    }
+
+    @Override
+    protected Set<HttpMethod> getSupportedMethods() {
+        return Set.of(GET, POST);
     }
 }

@@ -2,65 +2,45 @@ package com.aleos.servlets;
 
 import com.aleos.models.dtos.in.ConversionRateIdentifierPayload;
 import com.aleos.models.dtos.in.ConversionRatePayload;
+import com.aleos.models.dtos.out.ConversionRateResponse;
 import com.aleos.services.ConversionRateService;
-import com.aleos.util.AttributeNameUtil;
-import jakarta.servlet.ServletConfig;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.io.IOException;
+import java.util.Optional;
+import java.util.Set;
 
-import static jakarta.servlet.http.HttpServletResponse.*;
+import static com.aleos.servlets.HttpMethod.GET;
+import static com.aleos.servlets.HttpMethod.PATCH;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 
-@WebServlet("/exchangeRate/*")
-public class ConversionRateServlet extends HttpServlet {
+public class ConversionRateServlet extends BaseServlet {
 
-    private transient ConversionRateService conversionRateService;
-
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-
-        super.init(config);
-        conversionRateService = (ConversionRateService) config.getServletContext()
-                .getAttribute(AttributeNameUtil.getName(ConversionRateService.class));
-    }
-
-    @Override
-    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
-        if ("PATCH".equalsIgnoreCase(req.getMethod())) {
-            doPatch(req, resp);
-        } else {
-            super.service(req, resp);
-        }
-    }
+    private static ConversionRateService conversionRateService;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
+        var payload = getPayload(req, ConversionRateIdentifierPayload.class);
 
-        var payload = (ConversionRateIdentifierPayload) req.getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
+        Optional<ConversionRateResponse> byPayload = conversionRateService.findByCode(payload);
 
-        var byCode = conversionRateService.findByCode(payload);
-
-        if (byCode.isPresent()) {
-            req.setAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR, byCode.get());
-            resp.setStatus(SC_OK);
-            return;
-        }
-
-        req.setAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR,
-                "Currency with identifier: %s, does not exist.".formatted(payload.code()));
-        resp.setStatus(SC_NOT_FOUND);
+        byPayload.ifPresentOrElse(
+                responseModel -> setResponseModel(req, responseModel),
+                () -> {
+                    setResponseModel(req, "Currency with identifier: %s not found.".formatted(payload.identifier()));
+                    resp.setStatus(SC_NOT_FOUND);
+                }
+        );
     }
 
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) {
-
-        var payload = (ConversionRatePayload) req.getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
-
-        conversionRateService.update(payload);
+        conversionRateService.update(getPayload(req, ConversionRatePayload.class));
         resp.setStatus(SC_NO_CONTENT);
+    }
+
+    @Override
+    protected Set<HttpMethod> getSupportedMethods() {
+        return Set.of(GET, PATCH);
     }
 }

@@ -1,49 +1,36 @@
 package com.aleos.servlets;
 
 import com.aleos.models.dtos.in.ConversionRatePayload;
-import com.aleos.models.dtos.out.ConversionRateResponse;
 import com.aleos.services.ConversionRateService;
 import com.aleos.util.AttributeNameUtil;
-import jakarta.servlet.ServletConfig;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 
-@WebServlet("/exchangeRates")
+import static com.aleos.servlets.HttpMethod.*;
+import static jakarta.servlet.http.HttpServletResponse.SC_CREATED;
+
 @RequiredArgsConstructor
-public class ConversionRatesServlet extends HttpServlet {
+public class ConversionRatesServlet extends BaseServlet {
 
-    private transient ConversionRateService conversionRateService;
-
-    @Override
-    public void init(ServletConfig config) throws ServletException {
-
-        super.init(config);
-        conversionRateService = (ConversionRateService) config.getServletContext()
-                .getAttribute(AttributeNameUtil.getName(ConversionRateService.class));
-    }
+    private static ConversionRateService conversionRateService;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-
-        List<ConversionRateResponse> all = conversionRateService.findAll();
-
-        req.setAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR, all);
-        resp.setStatus(HttpServletResponse.SC_OK);
+        req.setAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR, conversionRateService.findAll());
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
+        var conversionRateResponse = conversionRateService.save(getPayload(req, ConversionRatePayload.class));
+        setResponseModel(req, conversionRateResponse);
+        resp.setStatus(SC_CREATED);
+    }
 
-        ConversionRatePayload payload =
-                (ConversionRatePayload) req.getServletContext().getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
-
-        conversionRateService.save(payload);
-        resp.setStatus(HttpServletResponse.SC_OK);
+    @Override
+    protected Set<HttpMethod> getSupportedMethods() {
+        return Set.of(GET, POST);
     }
 }
