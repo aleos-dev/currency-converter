@@ -1,5 +1,7 @@
 package com.aleos.services;
 
+import lombok.NonNull;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CacheService {
@@ -9,7 +11,7 @@ public class CacheService {
     public record CacheEntry(Integer status, Object content) {
     }
 
-    public void put(String key, CacheEntry cacheEntry) {
+    public void put(@NonNull String key, @NonNull CacheEntry cacheEntry) {
         cache.put(key, cacheEntry);
     }
 
