@@ -6,64 +6,46 @@ import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiFunction;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @RequiredArgsConstructor
-public class ConversionRateValidator implements PayloadValidator<ConversionRatePayload, ErrorResponse> {
+public class ConversionRateValidator extends AbstractPayloadValidator<ConversionRatePayload, ErrorResponse> {
 
-    private static final BigDecimal RATE_MIN_VALUE = BigDecimal.ZERO;
-
-    private static final String CONVERSION_RATE_CODE_REGEX = "^([a-zA-Z]{6})$";
+    private static final Pattern CONVERSION_RATE_CODE_PATTERN = Pattern.compile("^([a-zA-Z]{6})$");
 
     private final CurrencyValidator currencyValidator;
 
+    Predicate<BigDecimal> isRatePositive = rate -> rate.compareTo(BigDecimal.ZERO) > 0;
+
     @Override
     public List<ErrorResponse> validate(ConversionRatePayload payload) {
-
         return Stream.of(
-                        currencyValidator.validateCode("BaseCurrencyCode", payload.baseCurrencyCode()),
-                        currencyValidator.validateCode("TargetCurrencyCode", payload.targetCurrencyCode()),
+                        validateCode(payload.baseCurrencyCode() + payload.targetCurrencyCode()),
                         validateRate(payload.rate()))
-                .flatMap(List::stream)
+                .flatMap(Optional::stream)
                 .toList();
     }
 
-    public List<ErrorResponse> validateRate(BigDecimal value) {
-
-        return Stream.of(createNonNullBigDecimalValidator(), createRateSignValidator())
-                .map(validator -> validator.apply("Rate", value))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .toList();
-    }
-
-    public List<ErrorResponse> validateIdentifier(String identifier) {
-
-        return Stream.of(
-                PayloadValidator.createNonEmptyStringValidator(),
-                PayloadValidator.createPatternValidator(CONVERSION_RATE_CODE_REGEX)
-        )
-                .map(validator -> validator.apply("ConversionRate code", identifier))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .toList();
+    public Optional<ErrorResponse> validateRate(BigDecimal value) {
+        if (isNull.test(value)) {
+            return Optional.of(new ErrorResponse("Rate is required."));
+        }
+        if (!isRatePositive.test(value)) {
+            return Optional.of(new ErrorResponse("Rate should be positive."));
+        }
+        return Optional.empty();
     }
 
 
-    private BiFunction<String, BigDecimal, Optional<ErrorResponse>> createNonNullBigDecimalValidator() {
-        return PayloadValidator.createFieldValidator(
-                Objects::nonNull,
-                fieldName -> new ErrorResponse(String.format("%s should be positive.", fieldName))
-        );
+    public Optional<ErrorResponse> validateCode(String value) {
+        return validatePattern("Code", value, CONVERSION_RATE_CODE_PATTERN);
     }
 
-    private BiFunction<String, BigDecimal, Optional<ErrorResponse>> createRateSignValidator() {
-        return PayloadValidator.createFieldValidator(
-                value -> value.compareTo(RATE_MIN_VALUE) > 0,
-                fieldName -> new ErrorResponse(String.format("%s should be positive.", fieldName))
-        );
+    @Override
+    protected ErrorResponse buildErrorResponse(String message, Object... args) {
+        return new ErrorResponse(String.format(message, args));
     }
 }
