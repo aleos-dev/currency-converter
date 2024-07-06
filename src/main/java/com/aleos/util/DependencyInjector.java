@@ -11,13 +11,9 @@ public final class DependencyInjector {
     }
 
     public static void inject(Object target, ServletContext context) {
-
         for (Field field : target.getClass().getDeclaredFields()) {
-
             Class<?> clazz = field.getType();
-
             Object attribute = context.getAttribute(AttributeNameUtil.getName(clazz));
-
             if (attribute != null) {
                 field.setAccessible(true);
                 try {
