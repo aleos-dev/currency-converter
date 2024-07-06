@@ -65,7 +65,7 @@ public class CachingFilter extends AbstractBaseFilter {
 
     private void prepareResponseFromCache(HttpServletRequest req, HttpServletResponse resp, String key) {
         CacheEntry cache = cacheService.get(key);
-        setResponseAttribute(cache.content(), req);
+        req.setAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR, cache.content());
         resp.setStatus(cache.status());
         if (LOGGER.isLoggable(Level.INFO)) {
             LOGGER.info("Prepared response from cache for key: %s".formatted(key));
