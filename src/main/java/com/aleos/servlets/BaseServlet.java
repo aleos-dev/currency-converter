@@ -3,39 +3,19 @@ package com.aleos.servlets;
 import com.aleos.exceptions.servlets.PayloadNotFoundException;
 import com.aleos.util.AttributeNameUtil;
 import com.aleos.util.DependencyInjector;
-import com.aleos.util.PropertiesUtil;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 
-import java.io.IOException;
-import java.util.Set;
-
 public abstract class BaseServlet extends HttpServlet {
-
-    private transient Set<HttpMethod> supportedMethods;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-
-        supportedMethods = getSupportedMethods();
         DependencyInjector.inject(this, config.getServletContext());
     }
-
-    @Override
-    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        if (supportedMethods.contains(HttpMethod.valueOf(req.getMethod().toUpperCase()))) {
-            super.service(req, resp);
-        } else {
-            req.getRequestDispatcher(PropertiesUtil.ERROR_PAGE_404).forward(req, resp);
-        }
-    }
-
-    protected abstract Set<HttpMethod> getSupportedMethods();
 
     protected <T> T getPayload(HttpServletRequest req, Class<T> type) {
         Object rawPayload = req.getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);

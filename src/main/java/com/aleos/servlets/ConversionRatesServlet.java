@@ -7,9 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Set;
-
-import static com.aleos.servlets.HttpMethod.*;
 import static jakarta.servlet.http.HttpServletResponse.SC_CREATED;
 
 @RequiredArgsConstructor
@@ -27,10 +24,5 @@ public class ConversionRatesServlet extends BaseServlet {
         var conversionRateResponse = conversionRateService.save(getPayload(req, ConversionRatePayload.class));
         setResponseModel(req, conversionRateResponse);
         resp.setStatus(SC_CREATED);
-    }
-
-    @Override
-    protected Set<HttpMethod> getSupportedMethods() {
-        return Set.of(GET, POST);
     }
 }

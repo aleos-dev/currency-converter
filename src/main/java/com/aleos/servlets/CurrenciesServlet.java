@@ -7,11 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Set;
-
-import static com.aleos.servlets.HttpMethod.GET;
-import static com.aleos.servlets.HttpMethod.POST;
-
 @RequiredArgsConstructor
 public class CurrenciesServlet extends BaseServlet {
 
@@ -28,10 +23,5 @@ public class CurrenciesServlet extends BaseServlet {
 
         setResponseModel(req, responseModel);
         resp.setStatus(HttpServletResponse.SC_CREATED);
-    }
-
-    @Override
-    protected Set<HttpMethod> getSupportedMethods() {
-        return Set.of(GET, POST);
     }
 }

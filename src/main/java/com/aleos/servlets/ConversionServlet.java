@@ -8,9 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.Optional;
-import java.util.Set;
 
-import static com.aleos.servlets.HttpMethod.GET;
 import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 public class ConversionServlet extends BaseServlet {
@@ -28,10 +26,5 @@ public class ConversionServlet extends BaseServlet {
                     resp.setStatus(SC_NOT_FOUND);
                 }
         );
-    }
-
-    @Override
-    protected Set<HttpMethod> getSupportedMethods() {
-        return Set.of(GET);
     }
 }
