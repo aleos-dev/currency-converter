@@ -12,39 +12,31 @@ public class CurrencyMapper {
     private final ModelMapper modelMapper;
 
     public CurrencyMapper(ModelMapper modelMapper) {
-
         this.modelMapper = modelMapper;
         configureMappings();
     }
 
     private void configureMappings() {
-
-       Converter<Currency, CurrencyResponse> toDtoConverter = context -> {
-           Currency source = context.getSource();
-
-           return new CurrencyResponse(
-                   source.getId(),
-                   source.getFullname(),
-                   source.getCode(),
-                   source.getSign()
-           );
-       };
-
-       Converter<CurrencyPayload, Currency>  toEntityConverter = context -> {
-
+        Converter<Currency, CurrencyResponse> toDtoConverter = context -> {
+            Currency source = context.getSource();
+            return new CurrencyResponse(
+                    source.getId(),
+                    source.getFullname(),
+                    source.getCode(),
+                    source.getSign()
+            );
+        };
+        Converter<CurrencyPayload, Currency> toEntityConverter = context -> {
             CurrencyPayload source = context.getSource();
+            var currency = new Currency();
+            currency.setFullname(source.name());
+            currency.setCode(source.code());
+            currency.setSign(source.sign());
 
-           var currency = new Currency();
-           currency.setFullname(source.name());
-           currency.setCode(source.code());
-           currency.setSign(source.sign());
-
-           return currency;
-       };
-
+            return currency;
+        };
         TypeMap<Currency, CurrencyResponse> toDtoTypeMap = modelMapper.createTypeMap(Currency.class, CurrencyResponse.class);
         toDtoTypeMap.setConverter(toDtoConverter);
-
         TypeMap<CurrencyPayload, Currency> toEntityTypeMap = modelMapper.createTypeMap(CurrencyPayload.class, Currency.class);
         toEntityTypeMap.setConverter(toEntityConverter);
     }
