@@ -1,4 +1,4 @@
-package com.aleos.servlets;
+package com.aleos.servlets.common;
 
 public enum HttpMethod {
     GET,
