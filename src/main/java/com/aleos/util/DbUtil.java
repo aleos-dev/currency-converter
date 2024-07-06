@@ -25,14 +25,12 @@ public final class DbUtil {
     }
 
     public static DataSource getTestDataSource() {
-
         var dataSource = initDataSource();
         runFlywayMigration(dataSource);
         return dataSource;
     }
 
     private static DataSource initDataSource() {
-
             Properties properties = new Properties();
             properties.setProperty("jdbcUrl", PropertiesUtil.DATABASE_URL);
             properties.setProperty("username", PropertiesUtil.DATABASE_USER);
@@ -41,16 +39,13 @@ public final class DbUtil {
             properties.setProperty("maximumPoolSize", PropertiesUtil.DATABASE_POOL_SIZE);
 
             HikariConfig hikariConfig = new HikariConfig(properties);
-
             return new HikariDataSource(hikariConfig);
     }
 
     private static void runFlywayMigration(DataSource dataSource) {
-
         Flyway flyway = Flyway.configure()
                 .dataSource(dataSource)
                 .load();
-
         flyway.migrate();
     }
 }
