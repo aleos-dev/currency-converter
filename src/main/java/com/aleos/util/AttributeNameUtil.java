@@ -11,10 +11,8 @@ public final class AttributeNameUtil {
     }
 
     public static String getName(Class<?> clazz) {
-
         String className = clazz.getSimpleName();
         var letter = className.substring(0, 1);
-
         return className.replaceFirst(letter, letter.toLowerCase());
     }
 }

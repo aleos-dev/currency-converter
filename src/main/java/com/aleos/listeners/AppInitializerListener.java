@@ -12,7 +12,7 @@ import com.aleos.services.CurrencyService;
 import com.aleos.servlets.*;
 import com.aleos.util.AttributeNameUtil;
 import com.aleos.util.DbUtil;
-import com.aleos.util.PropertyUtil;
+import com.aleos.util.PropertiesUtil;
 import com.aleos.validators.ConversionRateValidator;
 import com.aleos.validators.CurrencyValidator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,7 +37,6 @@ public class AppInitializerListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-
         initDataSource(sce);
         initObjectMapper(sce);
 
@@ -67,36 +66,26 @@ public class AppInitializerListener implements ServletContextListener {
     }
 
     private Object initializeClass(Class<?> clazz, ServletContextEvent sce) {
-
         try {
             Constructor<?>[] constructors = clazz.getDeclaredConstructors();
-
             for (Constructor<?> constructor : constructors) {
                 Class<?>[] parameterTypes = constructor.getParameterTypes();
-
                 if (parameterTypes.length == 0) {
-
                     return constructor.newInstance();
                 } else {
-
                     Object[] parameters = new Object[parameterTypes.length];
-
                     for (int i = 0; i < parameterTypes.length; i++) {
                         String attributeName = AttributeNameUtil.getName(parameterTypes[i]);
                         parameters[i] = sce.getServletContext().getAttribute(attributeName);
                     }
-
                     return constructor.newInstance(parameters);
                 }
             }
-
             throw new NoSuchMethodException("No suitable constructor found for " + clazz.getName());
-
         } catch (InstantiationException
                  | InvocationTargetException
                  | NoSuchMethodException
                  | IllegalAccessException e) {
-
             throw new ContextInitializationException("Error initializing context", e);
         }
     }
@@ -118,28 +107,19 @@ public class AppInitializerListener implements ServletContextListener {
     }
 
     private void registerServlets(ServletContext servletContext) {
-
         registerServlet(servletContext, AttributeNameUtil.getName(CurrencyServlet.class),
-                new CurrencyServlet(), PropertyUtil.CURRENCY_SERVICE_URL);
-
+                new CurrencyServlet(), PropertiesUtil.CURRENCY_SERVICE_URL);
         registerServlet(servletContext, AttributeNameUtil.getName(CurrenciesServlet.class),
-                new CurrenciesServlet(), PropertyUtil.CURRENCIES_SERVICE_URL);
-
+                new CurrenciesServlet(), PropertiesUtil.CURRENCIES_SERVICE_URL);
         registerServlet(servletContext, AttributeNameUtil.getName(ConversionRateServlet.class),
-                new ConversionRateServlet(), PropertyUtil.CONVERSION_RATE_SERVICE_URL);
-
-        registerServlet(servletContext,AttributeNameUtil.getName(ConversionRatesServlet.class),
-                new ConversionRatesServlet(), PropertyUtil.CONVERSION_RATES_SERVICE_URL);
-
-        registerServlet(servletContext,AttributeNameUtil.getName(ConversionServlet.class),
-                new ConversionServlet(), PropertyUtil.CONVERSION_SERVICE_URL);
-
-        registerServlet(servletContext,AttributeNameUtil.getName(Error404Servlet.class),
-                new Error404Servlet(), PropertyUtil.ERROR_PAGE_404);
+                new ConversionRateServlet(), PropertiesUtil.CONVERSION_RATE_SERVICE_URL);
+        registerServlet(servletContext, AttributeNameUtil.getName(ConversionRatesServlet.class),
+                new ConversionRatesServlet(), PropertiesUtil.CONVERSION_RATES_SERVICE_URL);
+        registerServlet(servletContext, AttributeNameUtil.getName(ConversionServlet.class),
+                new ConversionServlet(), PropertiesUtil.CONVERSION_SERVICE_URL);
     }
 
     private void registerServlet(ServletContext servletContext, String name, HttpServlet servlet, String urlPattern) {
-
         ServletRegistration.Dynamic registration = servletContext.addServlet(name, servlet);
         registration.addMapping(urlPattern);
     }
