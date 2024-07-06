@@ -2,10 +2,10 @@ package com.aleos.daos;
 
 import com.aleos.exceptions.daos.DaoOperationException;
 import com.aleos.models.entities.Currency;
+import lombok.NonNull;
 
 import javax.sql.DataSource;
 import java.sql.*;
-import java.util.Objects;
 import java.util.Optional;
 
 public class CurrencyDao extends CrudDao<Currency, Integer> {
@@ -28,14 +28,9 @@ public class CurrencyDao extends CrudDao<Currency, Integer> {
         super(dataSource);
     }
 
-    public Optional<Currency> findByCode(String code) {
-
-        Objects.requireNonNull(code);
-
+    public Optional<Currency> findByCode(@NonNull String code) {
         try (var connection = dataSource.getConnection()) {
-
             return findEntityByCode(code, connection);
-
         } catch (SQLException e) {
             throw new DaoOperationException(e.getMessage(), e);
         }
@@ -43,29 +38,23 @@ public class CurrencyDao extends CrudDao<Currency, Integer> {
 
     @Override
     protected PreparedStatement createSaveStatement(Currency newCurrency, Connection connection) throws SQLException {
-
         var statement = connection.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS);
         populateStatementWithParameters(statement, newCurrency);
-
         return statement;
     }
 
     @Override
     protected PreparedStatement createFindByIdStatement(Integer id, Connection connection) throws SQLException {
-
         var statement = connection.prepareStatement(SELECT_BY_ID_SQL, Statement.RETURN_GENERATED_KEYS);
         statement.setInt(1, id);
-
         return statement;
     }
 
     @Override
     protected PreparedStatement createUpdateStatement(Currency currency, Connection connection) throws SQLException {
-
         var statement = connection.prepareStatement(UPDATE_BY_ID_SQL);
         populateStatementWithParameters(statement, currency);
         statement.setInt(4, currency.getId());
-
         return statement;
     }
 
@@ -76,49 +65,39 @@ public class CurrencyDao extends CrudDao<Currency, Integer> {
 
     @Override
     protected PreparedStatement createDeleteStatement(Integer id, Connection connection) throws SQLException {
-
         var statement = connection.prepareStatement(DELETE_BY_ID_SQL);
         statement.setInt(1, id);
-
         return statement;
     }
 
     protected PreparedStatement createFindByCodeStatement(String code, Connection connection) throws SQLException {
-
         var statement =
                 connection.prepareStatement(SELECT_BY_CODE_SQL, Statement.RETURN_GENERATED_KEYS);
         statement.setString(1, code);
-
         return statement;
     }
 
     @Override
     protected Currency mapRowToEntity(ResultSet rs) throws SQLException {
-
         var currency = new Currency();
         currency.setId(rs.getInt("id"));
         currency.setFullname(rs.getString("fullname"));
         currency.setCode(rs.getString("code"));
         currency.setSign(rs.getString("sign"));
-
         return currency;
     }
 
     @Override
     protected void populateStatementWithParameters(PreparedStatement statement, Currency currency)
             throws SQLException {
-
         statement.setString(1, currency.getFullname());
         statement.setString(2, currency.getCode());
         statement.setString(3, currency.getSign());
     }
 
     private Optional<Currency> findEntityByCode(String code, Connection connection) throws SQLException {
-
         try (var statement = createFindByCodeStatement(code, connection)) {
-
             ResultSet resultSet = statement.executeQuery();
-
             return mapSingleResult(resultSet);
         }
     }
