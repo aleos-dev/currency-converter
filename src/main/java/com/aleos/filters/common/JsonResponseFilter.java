@@ -1,7 +1,8 @@
-package com.aleos.servlets.filters;
+package com.aleos.filters.common;
 
 import com.aleos.exceptions.servlets.HttpResponseWritingException;
 import com.aleos.exceptions.servlets.WrappedJsonProcessingException;
+import com.aleos.filters.AbstractBaseFilter;
 import com.aleos.util.AttributeNameUtil;
 import com.aleos.util.PropertiesUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -13,7 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 
-public class JsonResponseFilter extends BaseFilter {
+public class JsonResponseFilter extends AbstractBaseFilter {
 
     private ObjectMapper objectMapper;
 
@@ -21,7 +22,6 @@ public class JsonResponseFilter extends BaseFilter {
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
             throws IOException, ServletException {
         chain.doFilter(req, resp);
-
         processResponse((HttpServletRequest) req, ((HttpServletResponse) resp));
     }
 
@@ -41,7 +41,6 @@ public class JsonResponseFilter extends BaseFilter {
     }
 
     private String toJson(Object responseObject) {
-
         try {
             return objectMapper.writeValueAsString(responseObject);
         } catch (JsonProcessingException e) {

@@ -1,4 +1,4 @@
-package com.aleos.servlets.filters;
+package com.aleos.filters.common;
 
 import com.aleos.util.PropertiesUtil;
 import jakarta.servlet.*;

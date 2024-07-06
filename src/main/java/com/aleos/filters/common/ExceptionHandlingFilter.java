@@ -1,5 +1,6 @@
-package com.aleos.servlets.filters;
+package com.aleos.filters.common;
 
+import com.aleos.exceptions.daos.UniqueConstraintViolationException;
 import com.aleos.exceptions.servlets.RequestBodyParsingException;
 import com.aleos.exceptions.daos.DaoOperationException;
 import com.aleos.exceptions.servlets.HttpResponseWritingException;
@@ -36,10 +37,15 @@ public class ExceptionHandlingFilter implements Filter {
 
             chain.doFilter(request, response);
 
+        } catch (UniqueConstraintViolationException e) {
+            httpResponse.setStatus(HttpServletResponse.SC_CONFLICT);
+            handleException(httpResponse, e);
+        } catch (NumberFormatException e) {
+            httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            handleException((HttpServletResponse) response, e);
         } catch (HttpResponseWritingException
                  | WrappedJsonProcessingException
-                | DaoOperationException e)
-        {
+                 | DaoOperationException e) {
             handleException((HttpServletResponse) response, e);
             httpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         } catch (RequestBodyParsingException e) {
@@ -52,13 +58,11 @@ public class ExceptionHandlingFilter implements Filter {
     }
 
     private void handleException(HttpServletResponse response, Exception e) throws IOException {
-
         LOGGER.log(Level.SEVERE, e.getMessage(), e);
 
         String json = objectMapper.writeValueAsString(new ErrorResponse(e.getMessage()));
 
         response.resetBuffer();
-        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         response.getWriter().write(json);
         response.setContentType("application/json");
     }
