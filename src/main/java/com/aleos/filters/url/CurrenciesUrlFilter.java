@@ -1,15 +1,13 @@
-package com.aleos.filters;
+package com.aleos.filters.url;
 
 import com.aleos.models.dtos.in.CurrencyPayload;
-import com.aleos.models.dtos.out.ErrorResponse;
+import com.aleos.models.dtos.out.Error;
 import com.aleos.validators.CurrencyValidator;
+import com.aleos.validators.ValidationResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.util.Collections;
-import java.util.List;
-
-public class CurrenciesFilter extends AbstractPreprocessingFilter {
+public class CurrenciesUrlFilter extends AbstractUrlFilter {
 
     private CurrencyValidator currencyValidator;
 
@@ -21,10 +19,10 @@ public class CurrenciesFilter extends AbstractPreprocessingFilter {
     }
 
     @Override
-    protected List<ErrorResponse> validatePayload(HttpServletRequest req, HttpServletResponse resp) {
+    protected ValidationResult<Error> validatePayload(HttpServletRequest req, HttpServletResponse resp) {
         return isPostMethod(req)
                 ? currencyValidator.validate(getPayloadAttribute(CurrencyPayload.class, req))
-                : Collections.emptyList();
+                : new ValidationResult<>();
     }
 
     private CurrencyPayload extractCurrencyPayload(HttpServletRequest req) {

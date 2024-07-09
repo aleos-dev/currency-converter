@@ -1,7 +1,9 @@
-package com.aleos.filters;
+package com.aleos.filters.url;
 
-import com.aleos.models.dtos.out.ErrorResponse;
+import com.aleos.filters.AbstractBaseFilter;
+import com.aleos.models.dtos.out.Error;
 import com.aleos.util.AttributeNameUtil;
+import com.aleos.validators.ValidationResult;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -10,14 +12,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
-public abstract class AbstractPreprocessingFilter extends AbstractBaseFilter {
+public abstract class AbstractUrlFilter extends AbstractBaseFilter {
 
     protected abstract void initializePayload(HttpServletRequest req, HttpServletResponse resp);
 
-    protected abstract List<ErrorResponse> validatePayload(HttpServletRequest req, HttpServletResponse resp);
+    protected abstract ValidationResult<Error> validatePayload(HttpServletRequest req, HttpServletResponse resp);
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -28,15 +29,15 @@ public abstract class AbstractPreprocessingFilter extends AbstractBaseFilter {
 
         initializePayload(httpReq, httpResp);
 
-        List<ErrorResponse> errors = validatePayload(httpReq, httpResp);
+        ValidationResult<Error> validationResult = validatePayload(httpReq, httpResp);
 
-        if (errors.isEmpty()) {
-            chain.doFilter(req, resp);
+        if (validationResult.hasErrors()) {
+            setResponseAttribute(validationResult.getErrors(), httpReq);
+            httpResp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
-        setResponseAttribute(errors, httpReq);
-        httpResp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        chain.doFilter(req, resp);
     }
 
     protected <T> T getPayloadAttribute(Class<T> clazz, HttpServletRequest req) {

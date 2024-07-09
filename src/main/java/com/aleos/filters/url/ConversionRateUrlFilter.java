@@ -1,20 +1,19 @@
-package com.aleos.filters;
+package com.aleos.filters.url;
 
 import com.aleos.exceptions.servlets.RequestBodyParsingException;
 import com.aleos.models.dtos.in.ConversionRateIdentifierPayload;
 import com.aleos.models.dtos.in.ConversionRatePayload;
-import com.aleos.models.dtos.out.ErrorResponse;
+import com.aleos.models.dtos.out.Error;
 import com.aleos.validators.ConversionRateValidator;
+import com.aleos.validators.ValidationResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
-public class ConversionRateFilter extends AbstractPreprocessingFilter {
+public class ConversionRateUrlFilter extends AbstractUrlFilter {
 
     private static final int CURRENCY_CODE_LENGTH = 3;
 
@@ -31,18 +30,21 @@ public class ConversionRateFilter extends AbstractPreprocessingFilter {
     }
 
     @Override
-    protected List<ErrorResponse> validatePayload(HttpServletRequest req, HttpServletResponse resp) {
+    protected ValidationResult<Error> validatePayload(HttpServletRequest req, HttpServletResponse resp) {
+        var validationResult = new ValidationResult<Error>();
         if (isGetMethod(req)) {
-            return conversionRateValidator.validateCode(
-                    getPayloadAttribute(ConversionRateIdentifierPayload.class, req).identifier())
-                    .map(Collections::singletonList)
-                    .orElseGet(Collections::emptyList);
-
-        } else if (isPatchMethod(req)) {
-            return conversionRateValidator.validate(getPayloadAttribute(ConversionRatePayload.class, req));
+            return conversionRateValidator.validateIdentifier(
+                            getPayloadAttribute(ConversionRateIdentifierPayload.class, req).identifier())
+                    .map(error -> {
+                        validationResult.add(error);
+                        return validationResult;
+                    })
+                    .orElse(validationResult);
         }
 
-        return Collections.emptyList();
+        return isPatchMethod(req)
+                ? conversionRateValidator.validate(getPayloadAttribute(ConversionRatePayload.class, req))
+                : validationResult;
     }
 
     private Optional<ConversionRatePayload> extractConversionRatePayload(HttpServletRequest req) {
@@ -57,7 +59,7 @@ public class ConversionRateFilter extends AbstractPreprocessingFilter {
         return getPathInfo(req).map(ConversionRateIdentifierPayload::new);
     }
 
-    // patch request
+    // extract rate from body for patch request
     private BigDecimal extractRate(HttpServletRequest request) {
         try {
             return request.getReader().lines()

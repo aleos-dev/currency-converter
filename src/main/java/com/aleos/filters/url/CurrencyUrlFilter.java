@@ -1,16 +1,15 @@
-package com.aleos.filters;
+package com.aleos.filters.url;
 
 import com.aleos.models.dtos.in.CurrencyIdentifierPayload;
-import com.aleos.models.dtos.out.ErrorResponse;
+import com.aleos.models.dtos.out.Error;
 import com.aleos.validators.CurrencyValidator;
+import com.aleos.validators.ValidationResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
-public class CurrencyFilter extends AbstractPreprocessingFilter {
+public class CurrencyUrlFilter extends AbstractUrlFilter {
 
     private CurrencyValidator currencyValidator;
 
@@ -23,15 +22,15 @@ public class CurrencyFilter extends AbstractPreprocessingFilter {
     }
 
     @Override
-    protected List<ErrorResponse> validatePayload(HttpServletRequest req, HttpServletResponse resp) {
-        if (!isGetMethod(req)) {
-            return Collections.emptyList();
-        }
-        CurrencyIdentifierPayload payload = getPayloadAttribute(CurrencyIdentifierPayload.class, req);
+    protected ValidationResult<Error> validatePayload(HttpServletRequest req, HttpServletResponse resp) {
+        var validationResult = new ValidationResult<Error>();
 
-        return currencyValidator.validateIdentifier(payload.identifier())
-                .map(Collections::singletonList)
-                .orElse(Collections.emptyList());
+        if (isGetMethod(req)) {
+            CurrencyIdentifierPayload payload = getPayloadAttribute(CurrencyIdentifierPayload.class, req);
+            currencyValidator.validateIdentifier(payload.identifier())
+                    .ifPresent(validationResult::add);
+        }
+        return validationResult;
     }
 
     private Optional<CurrencyIdentifierPayload> extractCurrencyIdentifierPayload(HttpServletRequest req) {

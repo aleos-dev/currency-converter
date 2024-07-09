@@ -1,16 +1,15 @@
-package com.aleos.filters;
+package com.aleos.filters.url;
 
 import com.aleos.models.dtos.in.ConversionRatePayload;
-import com.aleos.models.dtos.out.ErrorResponse;
+import com.aleos.models.dtos.out.Error;
 import com.aleos.validators.ConversionRateValidator;
+import com.aleos.validators.ValidationResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
 
-public class ConversionRatesFilter extends AbstractPreprocessingFilter {
+public class ConversionRatesUrlFilter extends AbstractUrlFilter {
 
     protected ConversionRateValidator conversionRateValidator;
 
@@ -22,17 +21,17 @@ public class ConversionRatesFilter extends AbstractPreprocessingFilter {
     }
 
     @Override
-    protected List<ErrorResponse> validatePayload(HttpServletRequest req, HttpServletResponse resp) {
+    protected ValidationResult<Error> validatePayload(HttpServletRequest req, HttpServletResponse resp) {
         return isPostMethod(req)
                 ? conversionRateValidator.validate(getPayloadAttribute(ConversionRatePayload.class, req))
-                : Collections.emptyList();
+                : new ValidationResult<>();
     }
 
     private ConversionRatePayload extractConversionRatePayload(HttpServletRequest req) {
-            return new ConversionRatePayload(
-                    req.getParameter("baseCurrencyCode"),
-                    req.getParameter("targetCurrencyCode"),
-                    new BigDecimal(req.getParameter("rate"))
-            );
+        return new ConversionRatePayload(
+                req.getParameter("baseCurrencyCode"),
+                req.getParameter("targetCurrencyCode"),
+                new BigDecimal(req.getParameter("rate"))
+        );
     }
 }

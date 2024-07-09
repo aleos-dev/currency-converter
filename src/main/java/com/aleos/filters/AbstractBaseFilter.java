@@ -12,7 +12,6 @@ public abstract class AbstractBaseFilter implements Filter {
 
     @Override
     public void init(FilterConfig config) throws ServletException {
-
         Filter.super.init(config);
         DependencyInjector.inject(this, config.getServletContext());
     }

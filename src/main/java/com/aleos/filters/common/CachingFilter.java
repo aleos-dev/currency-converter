@@ -6,7 +6,10 @@ import com.aleos.services.CacheService.CacheEntry;
 import com.aleos.servlets.common.HttpMethod;
 import com.aleos.util.AttributeNameUtil;
 import com.aleos.util.PropertiesUtil;
-import jakarta.servlet.*;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -20,7 +23,7 @@ public class CachingFilter extends AbstractBaseFilter {
 
     private static final Logger LOGGER = Logger.getLogger(CachingFilter.class.getName());
 
-    private static CacheService cacheService;
+    private CacheService cacheService;
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)

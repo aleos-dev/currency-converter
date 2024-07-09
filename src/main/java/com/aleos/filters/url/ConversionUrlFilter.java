@@ -1,15 +1,13 @@
-package com.aleos.filters;
+package com.aleos.filters.url;
 
 import com.aleos.models.dtos.in.ConversionPayload;
-import com.aleos.models.dtos.out.ErrorResponse;
+import com.aleos.models.dtos.out.Error;
 import com.aleos.validators.ConversionRateValidator;
+import com.aleos.validators.ValidationResult;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import java.util.Collections;
-import java.util.List;
-
-public class ConversionFilter extends AbstractPreprocessingFilter {
+public class ConversionUrlFilter extends AbstractUrlFilter {
 
     protected ConversionRateValidator validator;
 
@@ -19,14 +17,15 @@ public class ConversionFilter extends AbstractPreprocessingFilter {
     }
 
     @Override
-    protected List<ErrorResponse> validatePayload(HttpServletRequest req, HttpServletResponse resp) {
-        if (!isGetMethod(req)) {
-            return Collections.emptyList();
+    protected ValidationResult<Error> validatePayload(HttpServletRequest req, HttpServletResponse resp) {
+        var validationResult = new ValidationResult<Error>();
+        if (isGetMethod(req)) {
+            var payload = getPayloadAttribute(ConversionPayload.class, req);
+            validator.validateIdentifier(payload.baseCurrencyCode() + payload.targetCurrencyCode())
+                    .ifPresent(validationResult::add);
         }
-        var payload = getPayloadAttribute(ConversionPayload.class, req);
-        return validator.validateCode(payload.baseCurrencyCode() + payload.targetCurrencyCode())
-                .map(Collections::singletonList)
-                .orElse(Collections.emptyList());
+
+        return validationResult;
     }
 
     private ConversionPayload extractConversionPayload(HttpServletRequest req) {
