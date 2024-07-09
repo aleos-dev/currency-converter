@@ -1,6 +1,5 @@
 package com.aleos.validators;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -16,40 +15,31 @@ public abstract class AbstractPayloadValidator<T, R> {
     protected final BiFunction<Integer, Integer, Predicate<String>> isInBounds = (min, max) ->
             val -> val.length() >= min && val.length() <= max;
 
-    protected abstract List<R> validate(T payload);
+    protected abstract ValidationResult<R> validate(T payload);
 
-    protected abstract R buildErrorResponse(String message, Object... args);
-
+    protected abstract R buildError(String message, Object... args);
 
     protected Optional<R> validatePattern(String field, String value, Pattern pattern) {
+        R error = null;
         if (isNull.test(value)) {
-            return Optional.of(buildErrorResponse(field + " is required."));
+            error = buildError(field + " is required.");
+        } else if (isBlank.test(value)) {
+            error = buildError(field + " should not be blank.");
+        } else if (!pattern.asPredicate().test(value)) {
+            error = buildError("%s should match to %s regex.", field, pattern.pattern());
         }
-
-        if (isBlank.test(value)) {
-            return Optional.of(buildErrorResponse(field + " should not be blank."));
-        }
-
-        if (!pattern.asPredicate().test(value)) {
-            return Optional.of(buildErrorResponse("%s should match to %s regex.", field, pattern.pattern()));
-        }
-
-        return Optional.empty();
+        return Optional.ofNullable(error);
     }
 
     protected Optional<R> validateField(String field, String value, int minLength, int maxLength) {
+        R error = null;
         if (isNull.test(value)) {
-            return Optional.of(buildErrorResponse(field + " is required."));
+            error = buildError(field + " is required.");
+        } else if (isBlank.test(value)) {
+            error = buildError(field + " should not be blank.");
+        } else if (!isInBounds.apply(minLength, maxLength).test(value)) {
+            error = buildError("%s should be between %d and %d.", field, minLength, maxLength);
         }
-
-        if (isBlank.test(value)) {
-            return Optional.of(buildErrorResponse(field + " should not be blank."));
-        }
-
-        if (!isInBounds.apply(minLength, maxLength).test(value)) {
-            return Optional.of(buildErrorResponse("%s should be between %d and %d.", field, minLength, maxLength));
-        }
-
-        return Optional.empty();
+        return Optional.ofNullable(error);
     }
 }

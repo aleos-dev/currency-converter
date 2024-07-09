@@ -1,51 +1,50 @@
 package com.aleos.validators;
 
 import com.aleos.models.dtos.in.ConversionRatePayload;
-import com.aleos.models.dtos.out.ErrorResponse;
+import com.aleos.models.dtos.out.Error;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @RequiredArgsConstructor
-public class ConversionRateValidator extends AbstractPayloadValidator<ConversionRatePayload, ErrorResponse> {
+public class ConversionRateValidator extends AbstractPayloadValidator<ConversionRatePayload, Error> {
 
     private static final Pattern CONVERSION_RATE_CODE_PATTERN = Pattern.compile("^([a-zA-Z]{6})$");
-
-    private final CurrencyValidator currencyValidator;
 
     Predicate<BigDecimal> isRatePositive = rate -> rate.compareTo(BigDecimal.ZERO) > 0;
 
     @Override
-    public List<ErrorResponse> validate(ConversionRatePayload payload) {
-        return Stream.of(
-                        validateCode(payload.baseCurrencyCode() + payload.targetCurrencyCode()),
+    public ValidationResult<Error> validate(ConversionRatePayload payload) {
+        var validationResult = new ValidationResult<Error>();
+        Stream.of(
+                        validateIdentifier(payload.baseCurrencyCode() + payload.targetCurrencyCode()),
                         validateRate(payload.rate()))
                 .flatMap(Optional::stream)
-                .toList();
+                .forEach(validationResult::add);
+        return validationResult;
     }
 
-    public Optional<ErrorResponse> validateRate(BigDecimal value) {
+    public Optional<Error> validateRate(BigDecimal value) {
+        Error error = null;
         if (isNull.test(value)) {
-            return Optional.of(new ErrorResponse("Rate is required."));
+            error = buildError("Rate is required.");
+        } else if (!isRatePositive.test(value)) {
+            error = buildError("Rate should be positive.");
         }
-        if (!isRatePositive.test(value)) {
-            return Optional.of(new ErrorResponse("Rate should be positive."));
-        }
-        return Optional.empty();
+        return Optional.ofNullable(error);
     }
 
 
-    public Optional<ErrorResponse> validateCode(String value) {
-        return validatePattern("Code", value, CONVERSION_RATE_CODE_PATTERN);
+    public Optional<Error> validateIdentifier(String value) {
+        return validatePattern("Identifier", value, CONVERSION_RATE_CODE_PATTERN);
     }
 
     @Override
-    protected ErrorResponse buildErrorResponse(String message, Object... args) {
-        return new ErrorResponse(String.format(message, args));
+    protected Error buildError(String message, Object... args) {
+        return Error.of(String.format(message, args));
     }
 }

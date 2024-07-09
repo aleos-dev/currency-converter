@@ -2,7 +2,7 @@ package com.aleos.servlets;
 
 import com.aleos.models.dtos.in.ConversionPayload;
 import com.aleos.models.dtos.out.ConversionResponse;
-import com.aleos.models.dtos.out.ErrorResponse;
+import com.aleos.models.dtos.out.Error;
 import com.aleos.services.ConversionService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,7 +22,7 @@ public class ConversionServlet extends BaseServlet {
         byPayload.ifPresentOrElse(
                 responseModel -> setResponseModel(req, responseModel),
                 () -> {
-                    setResponseModel(req, new ErrorResponse("Conversion is not possible."));
+                    setResponseModel(req, Error.of("Conversion is not possible."));
                     resp.setStatus(SC_NOT_FOUND);
                 }
         );
