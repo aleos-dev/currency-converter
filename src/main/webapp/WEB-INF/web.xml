@@ -32,27 +32,27 @@
 
     <filter>
         <filter-name>CurrencyFilter</filter-name>
-        <filter-class>com.aleos.filters.CurrencyFilter</filter-class>
+        <filter-class>com.aleos.filters.url.CurrencyUrlFilter</filter-class>
     </filter>
 
     <filter>
         <filter-name>CurrenciesFilter</filter-name>
-        <filter-class>com.aleos.filters.CurrenciesFilter</filter-class>
+        <filter-class>com.aleos.filters.url.CurrenciesUrlFilter</filter-class>
     </filter>
 
     <filter>
         <filter-name>ConversionRateFilter</filter-name>
-        <filter-class>com.aleos.filters.ConversionRateFilter</filter-class>
+        <filter-class>com.aleos.filters.url.ConversionRateUrlFilter</filter-class>
     </filter>
 
     <filter>
         <filter-name>ConversionRatesFilter</filter-name>
-        <filter-class>com.aleos.filters.ConversionRatesFilter</filter-class>
+        <filter-class>com.aleos.filters.url.ConversionRatesUrlFilter</filter-class>
     </filter>
 
     <filter>
         <filter-name>ConversionFilter</filter-name>
-        <filter-class>com.aleos.filters.ConversionFilter</filter-class>
+        <filter-class>com.aleos.filters.url.ConversionUrlFilter</filter-class>
     </filter>
 
     <!-- Filter Mappings -->
