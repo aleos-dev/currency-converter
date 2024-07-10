@@ -12,10 +12,14 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
 public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
+
+    private static final Logger logger = Logger.getLogger(ConversionRateDao.class.getName());
 
     private static final String INSERT_SQL =
             "INSERT INTO conversion_rates (base_currency_id, target_currency_id, rate) values (?, ?, ?);";
@@ -134,44 +138,70 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
         super(dataSource);
     }
 
-    public ConversionRate saveAndFetch(@NonNull String baseCurrencyCode,
-                                       @NonNull String targetCurrencyCode,
+    public ConversionRate saveAndFetch(@NonNull String from,
+                                       @NonNull String to,
                                        @NonNull BigDecimal rate) {
-        try (Connection connection = dataSource.getConnection()) {
+        Connection connection = null;
+        try {
+            connection = dataSource.getConnection();
             connection.setAutoCommit(false);
-            var conversionRate =
-                    saveAndRetrieveConversionRate(baseCurrencyCode, targetCurrencyCode, rate, connection);
+
+            var conversionRate = saveAndFetch(from, to, rate, connection);
             connection.commit();
+
             return conversionRate;
+
+        } catch (SQLException e) {
+            try {
+                if (connection != null) {
+                    connection.rollback();
+                }
+            } catch (SQLException rollbackEx) {
+                throw new DaoOperationException("Unknown database error, rollback is failed", e);
+            }
+            throw new DaoOperationException("Transaction failed and was rolled back.", e);
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    logger.log(Level.SEVERE, "Unknown database error, cannot close connection.");
+                }
+            }
+        }
+    }
+
+    public Optional<ConversionRate> find(@NonNull String from, @NonNull String to) {
+        try (var connection = dataSource.getConnection();
+             var statement = createFindStatement(from, to, connection)
+        ) {
+            var resultSet = statement.executeQuery();
+            return mapSingleResult(resultSet);
         } catch (SQLException e) {
             throw new DaoOperationException(e.getMessage(), e);
         }
     }
 
-    public Optional<ConversionRate> findByCode(@NonNull String code) {
-        try (var connection = dataSource.getConnection()) {
-            return findEntityByCode(code, connection);
-        } catch (SQLException e) {
-            throw new DaoOperationException(e.getMessage(), e);
-        }
-    }
-
-    public void updateRate(@NonNull String baseCurrencyCode,
-                           @NonNull String targetCurrencyCode,
-                           @NonNull BigDecimal rate) {
+    public boolean update(@NonNull String from, @NonNull String to, @NonNull BigDecimal rate) {
         try (var connection = dataSource.getConnection();
              var statement = connection.prepareStatement(UPDATE_RATE_BY_CURRENCY_CODES_SQL)
         ) {
-            populateUpdateStatementByCodes(statement, baseCurrencyCode, targetCurrencyCode, rate);
-            executeUpdateStatement(baseCurrencyCode + targetCurrencyCode, statement);
+
+            populateUpdateStatement(statement, from, to, rate);
+            return statement.executeUpdate() > 0;
+
         } catch (SQLException e) {
             throw new DaoOperationException(e.getMessage(), e);
         }
     }
 
-    public Optional<ConversionRate> findCrossRateByCode(@NonNull String code) {
-        try (var connection = dataSource.getConnection()) {
-            return findCrossRateByCode(code, connection);
+    public Optional<ConversionRate> findCrossRate(@NonNull String from, @NonNull String to) {
+        try (var connection = dataSource.getConnection();
+             var statement = createFindCrossRateStatement(from, to, connection)) {
+
+            var resultSet = statement.executeQuery();
+            return mapSingleResult(resultSet);
+
         } catch (SQLException e) {
             throw new DaoOperationException(e.getMessage(), e);
         }
@@ -182,13 +212,15 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
             throws SQLException {
         var statement = connection.prepareStatement(INSERT_SQL, RETURN_GENERATED_KEYS);
         populateStatementWithParameters(statement, newConversionRate);
+
         return statement;
     }
 
     @Override
-    protected PreparedStatement createFindByIdStatement(Integer id, Connection connection) throws SQLException {
+    protected PreparedStatement createFindStatement(Integer id, Connection connection) throws SQLException {
         var statement = connection.prepareStatement(SELECT_BY_ID_SQL, RETURN_GENERATED_KEYS);
         statement.setInt(1, id);
+
         return statement;
     }
 
@@ -198,6 +230,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
         var statement = connection.prepareStatement(UPDATE_BY_ID_SQL);
         populateStatementWithParameters(statement, conversionRate);
         statement.setInt(4, conversionRate.getId());
+
         return statement;
     }
 
@@ -210,6 +243,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
     protected PreparedStatement createDeleteStatement(Integer id, Connection connection) throws SQLException {
         var statement = connection.prepareStatement(DELETE_BY_ID_SQL);
         statement.setInt(1, id);
+
         return statement;
     }
 
@@ -244,54 +278,12 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
         statement.setBigDecimal(3, conversionRate.getRate());
     }
 
-    private static void populateInsertStatementByCodes(PreparedStatement statement,
-                                                       String baseCurrencyCode,
-                                                       String targetCurrencyCode,
-                                                       BigDecimal rate
-    ) throws SQLException {
-        statement.setString(1, baseCurrencyCode);
-        statement.setString(2, targetCurrencyCode);
-        statement.setBigDecimal(3, rate);
-    }
 
-    private void populateUpdateStatementByCodes(PreparedStatement statement,
-                                                String baseCurrencyCode,
-                                                String targetCurrencyCode,
-                                                BigDecimal rate
-    ) throws SQLException {
-        statement.setBigDecimal(1, rate);
-        statement.setString(2, baseCurrencyCode);
-        statement.setString(3, targetCurrencyCode);
-    }
+    protected PreparedStatement createFindCrossRateStatement(String from,
+                                                             String to,
+                                                             Connection connection) throws SQLException {
 
-    private Optional<ConversionRate> findEntityByCode(String code, Connection connection) throws SQLException {
-        try (var statement = createFindByCodeStatement(code, connection)) {
-            ResultSet resultSet = statement.executeQuery();
-            return mapSingleResult(resultSet);
-        }
-    }
-
-    private PreparedStatement createFindByCodeStatement(String code, Connection connection) throws SQLException {
-        var statement =
-                connection.prepareStatement(SELECT_BY_CURRENCY_CODES_SQL);
-        statement.setString(1, code.substring(0, 3));
-        statement.setString(2, code.substring(3, 6));
-
-        return statement;
-    }
-
-    private Optional<ConversionRate> findCrossRateByCode(String code, Connection connection) throws SQLException {
-        try (var statement = createFindCrossRateByCode(code, connection)) {
-            ResultSet resultSet = statement.executeQuery();
-            return mapSingleResult(resultSet);
-        }
-    }
-
-    protected PreparedStatement createFindCrossRateByCode(String code, Connection connection) throws SQLException {
         var statement = connection.prepareStatement(SELECT_CROSS_RATE_BY_CODE);
-        int codeLength = 3;
-        var from = code.substring(0, codeLength);
-        var to = code.substring(codeLength);
 
         // a->c & c->b
         statement.setString(1, from);
@@ -312,32 +304,56 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
         return statement;
     }
 
+    private ConversionRate saveAndFetch(String from,
+                                        String to,
+                                        BigDecimal rate,
+                                        Connection connection) throws SQLException {
 
-    private ConversionRate saveAndRetrieveConversionRate(String baseCurrencyCode,
-                                                         String targetCurrencyCode,
-                                                         BigDecimal rate,
-                                                         Connection connection) throws SQLException {
-        try {
-            int conversionRateId = insertConversionRate(baseCurrencyCode, targetCurrencyCode, rate, connection);
-            Optional<ConversionRate> result = findEntityById(conversionRateId, connection);
-            return result.orElseThrow(() -> new DaoOperationException(
-                    String.format("Unexpected result! " +
-                                  "Saved instance with id = %s is not found in the database.", conversionRateId)));
-        } catch (SQLException | DaoOperationException e) {
-            connection.rollback();
-            throw e;
-        }
+        int id = saveByCodes(from, to, rate, connection);
+
+        return find(id, connection)
+                .orElseThrow(() -> new DaoOperationException(String.format(
+                        "Unexpected database error! The saved with id = %s is not found in the database.", id)));
     }
 
-    private int insertConversionRate(String baseCurrencyCode,
-                                     String targetCurrencyCode,
-                                     BigDecimal rate,
-                                     Connection connection) throws SQLException {
-        try (var statement =
-                     connection.prepareStatement(INSERT_WITH_CURRENCY_CODES_AS_FOREIGN_KEYS_SQL, RETURN_GENERATED_KEYS)) {
-            populateInsertStatementByCodes(statement, baseCurrencyCode, targetCurrencyCode, rate);
+    private int saveByCodes(String from,
+                            String to,
+                            BigDecimal rate,
+                            Connection connection) throws SQLException {
+
+        try (var statement = connection.prepareStatement(
+                INSERT_WITH_CURRENCY_CODES_AS_FOREIGN_KEYS_SQL, RETURN_GENERATED_KEYS)) {
+
+            populateInsertStatement(statement, from, to, rate);
+
             statement.executeUpdate();
             return fetchGeneratedId(statement);
         }
+    }
+
+    private PreparedStatement createFindStatement(String from, String to, Connection connection) throws SQLException {
+        var statement = connection.prepareStatement(SELECT_BY_CURRENCY_CODES_SQL);
+        statement.setString(1, from);
+        statement.setString(2, to);
+
+        return statement;
+    }
+
+    private void populateInsertStatement(PreparedStatement statement,
+                                         String from,
+                                         String to,
+                                         BigDecimal rate) throws SQLException {
+        statement.setString(1, from);
+        statement.setString(2, to);
+        statement.setBigDecimal(3, rate);
+    }
+
+    private void populateUpdateStatement(PreparedStatement statement,
+                                         String from,
+                                         String to,
+                                         BigDecimal rate) throws SQLException {
+        statement.setBigDecimal(1, rate);
+        statement.setString(2, from);
+        statement.setString(3, to);
     }
 }

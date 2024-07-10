@@ -1,7 +1,6 @@
 package com.aleos.daos;
 
 import com.aleos.exceptions.daos.DaoOperationException;
-import com.aleos.exceptions.daos.EntityNotFoundException;
 import com.aleos.exceptions.daos.UniqueConstraintViolationException;
 import com.aleos.models.entities.Entity;
 import lombok.NonNull;
@@ -23,10 +22,11 @@ public abstract class CrudDao<E extends Entity<K>, K> {
         this.dataSource = dataSource;
     }
 
-    public K save(@NonNull E entity) {
+    public void save(@NonNull E entity) {
         try (var connection = dataSource.getConnection()) {
-            saveEntity(entity, connection);
-            return entity.getId();
+
+            save(entity, connection);
+
         } catch (SQLException e) {
             if (e.getMessage().contains("SQLITE_CONSTRAINT_UNIQUE")) {
                 throw new UniqueConstraintViolationException("Can't be saved due to a unique constraint violation.", e);
@@ -36,64 +36,76 @@ public abstract class CrudDao<E extends Entity<K>, K> {
     }
 
     public List<E> findAll() {
-        try (var connection = dataSource.getConnection()) {
-            return findAllEntities(connection);
+        try (var connection = dataSource.getConnection();
+             var statement = createSelectAllStatement(connection)
+        ) {
+
+            var resultSet = statement.executeQuery();
+            return mapToList(resultSet);
+
         } catch (SQLException e) {
             throw new DaoOperationException(e.getMessage(), e);
         }
     }
 
-    public Optional<E> findById(@NonNull K id) {
+    public Optional<E> find(@NonNull K id) {
         try (var connection = dataSource.getConnection()) {
-            return findEntityById(id, connection);
+
+            return find(id, connection);
+
         } catch (SQLException e) {
             throw new DaoOperationException(e.getMessage(), e);
         }
     }
 
-    public void update(@NonNull E entity) {
-        try (var connection = dataSource.getConnection()) {
-            updateEntity(entity, connection);
+    public boolean update(@NonNull E entity) {
+        try (var connection = dataSource.getConnection();
+             var statement = createUpdateStatement(entity, connection)
+        ) {
+
+            return statement.executeUpdate() > 0;
+
         } catch (SQLException e) {
             throw new DaoOperationException(e.getMessage(), e);
         }
     }
 
-    public void delete(@NonNull K id) {
-        try (var connection = dataSource.getConnection()) {
-            deleteById(id, connection);
+    public boolean delete(@NonNull K id) {
+        try (var connection = dataSource.getConnection();
+             var statement = createDeleteStatement(id, connection)
+        ) {
+
+            return statement.executeUpdate() > 0;
+
         } catch (SQLException e) {
             throw new DaoOperationException(e.getMessage(), e);
         }
     }
 
-    protected void saveEntity(E entity, Connection connection) throws SQLException {
-        try (PreparedStatement statement = createSaveStatement(entity, connection)) {
+    protected void save(E entity, Connection connection) throws SQLException {
+        try (var statement = createSaveStatement(entity, connection)) {
+
             statement.executeUpdate();
             K id = fetchGeneratedId(statement);
             entity.setId(id);
         }
     }
 
+    protected Optional<E> find(K id, Connection connection) throws SQLException {
+        try (var statement = createFindStatement(id, connection)) {
 
-    protected void updateEntity(E entity, Connection connection) throws SQLException {
-        try (var statement = createUpdateStatement(entity, connection)) {
-            executeUpdateStatement(entity.getId(), statement);
+            ResultSet resultSet = statement.executeQuery();
+            return mapSingleResult(resultSet);
         }
     }
 
-    protected List<E> convertResultSetToList(ResultSet resultSet) throws SQLException {
+    protected List<E> mapToList(ResultSet resultSet) throws SQLException {
         List<E> list = new ArrayList<>();
         while (resultSet.next()) {
             list.add(mapRowToEntity(resultSet));
         }
-        return list;
-    }
 
-    protected void deleteById(K id, Connection connection) throws SQLException {
-        try (var statement = createDeleteStatement(id, connection)) {
-            executeUpdateStatement(id, statement);
-        }
+        return list;
     }
 
     protected K fetchGeneratedId(PreparedStatement statement) throws SQLException {
@@ -102,31 +114,22 @@ public abstract class CrudDao<E extends Entity<K>, K> {
 
             //noinspection unchecked
             return (K) generatedKeysSet.getObject(1);
+
         } else throw new DaoOperationException(
                 String.format("Cannot obtain generatedKey for %s", this.getClass().getSimpleName()));
     }
 
-    protected void executeUpdateStatement(Object identifier, PreparedStatement statement) throws SQLException {
-        int rowsAffected = statement.executeUpdate();
-        if (rowsAffected == 0) {
-            throw new EntityNotFoundException(String.format("%s can't find entity with identifier = %s",
-                    this.getClass().getSimpleName(), identifier));
-        }
-    }
-
     protected Optional<E> mapSingleResult(ResultSet resultSet) throws SQLException {
-        if (resultSet.next()) {
-            return Optional.of(mapRowToEntity(resultSet));
-        } else {
-            return Optional.empty();
-        }
+        return resultSet.next()
+                ? Optional.of(mapRowToEntity(resultSet))
+                : Optional.empty();
     }
 
     protected abstract PreparedStatement createSaveStatement(E entity, Connection connection) throws SQLException;
 
     protected abstract PreparedStatement createSelectAllStatement(Connection connection) throws SQLException;
 
-    protected abstract PreparedStatement createFindByIdStatement(K id, Connection connection) throws SQLException;
+    protected abstract PreparedStatement createFindStatement(K id, Connection connection) throws SQLException;
 
     protected abstract PreparedStatement createUpdateStatement(E entity, Connection connection) throws SQLException;
 
@@ -135,18 +138,4 @@ public abstract class CrudDao<E extends Entity<K>, K> {
     protected abstract E mapRowToEntity(ResultSet resultSet) throws SQLException;
 
     protected abstract void populateStatementWithParameters(PreparedStatement statement, E entity) throws SQLException;
-
-    protected Optional<E> findEntityById(K id, Connection connection) throws SQLException {
-        try (var statement = createFindByIdStatement(id, connection)) {
-            ResultSet resultSet = statement.executeQuery();
-            return mapSingleResult(resultSet);
-        }
-    }
-
-    protected List<E> findAllEntities(Connection connection) throws SQLException {
-        try (PreparedStatement statement = createSelectAllStatement(connection)) {
-            var resultSet = statement.executeQuery();
-            return convertResultSetToList(resultSet);
-        }
-    }
 }
