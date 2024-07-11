@@ -1,11 +1,11 @@
 package com.aleos.filters.common;
 
+import com.aleos.exceptions.PayloadCastException;
+import com.aleos.exceptions.UnknownParameterTypeException;
 import com.aleos.exceptions.daos.UniqueConstraintViolationException;
-import com.aleos.exceptions.servlets.RequestBodyParsingException;
+import com.aleos.exceptions.servlets.*;
 import com.aleos.exceptions.daos.DaoOperationException;
-import com.aleos.exceptions.servlets.HttpResponseWritingException;
-import com.aleos.exceptions.servlets.WrappedJsonProcessingException;
-import com.aleos.models.dtos.out.ErrorResponse;
+import com.aleos.models.dtos.out.Error;
 import com.aleos.util.AttributeNameUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.*;
@@ -19,11 +19,10 @@ public class ExceptionHandlingFilter implements Filter {
 
     private ObjectMapper objectMapper;
 
-    private static final Logger LOGGER = Logger.getLogger(ExceptionHandlingFilter.class.getName());
+    private static final Logger logger = Logger.getLogger(ExceptionHandlingFilter.class.getName());
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-
         Filter.super.init(filterConfig);
         objectMapper = (ObjectMapper) filterConfig.getServletContext()
                 .getAttribute(AttributeNameUtil.getName(ObjectMapper.class));
@@ -31,37 +30,39 @@ public class ExceptionHandlingFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException {
-
         var httpResponse = ((HttpServletResponse) response);
         try {
-
             chain.doFilter(request, response);
 
-        } catch (UniqueConstraintViolationException e) {
-            httpResponse.setStatus(HttpServletResponse.SC_CONFLICT);
+        } catch (RequestBodyParsingException
+                 | NumberFormatException
+                 | PayloadNotFoundException e) {
             handleException(httpResponse, e);
-        } catch (NumberFormatException e) {
             httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            handleException((HttpServletResponse) response, e);
+
+        } catch (UniqueConstraintViolationException e) {
+            handleException(httpResponse, e);
+            httpResponse.setStatus(HttpServletResponse.SC_CONFLICT);
+
         } catch (HttpResponseWritingException
                  | WrappedJsonProcessingException
-                 | DaoOperationException e) {
-            handleException((HttpServletResponse) response, e);
+                 | DaoOperationException
+                 | PayloadCastException
+                 | ContextInitializationException
+                 | UnknownParameterTypeException e) {
+            handleException(httpResponse, e);
             httpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        } catch (RequestBodyParsingException e) {
-            handleException((HttpServletResponse) response, e);
-            httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
         } catch (Exception e) {
-            handleException((HttpServletResponse) response, new RuntimeException("Unexpected server error", e));
-            ((HttpServletResponse) response).setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            handleException(httpResponse, new RuntimeException("Unexpected server error", e));
+            httpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 
     private void handleException(HttpServletResponse response, Exception e) throws IOException {
-        LOGGER.log(Level.SEVERE, e.getMessage(), e);
+        logger.log(Level.SEVERE, e.getMessage(), e);
 
-        String json = objectMapper.writeValueAsString(new ErrorResponse(e.getMessage()));
-
+        String json = objectMapper.writeValueAsString(Error.of(e.getMessage()));
         response.resetBuffer();
         response.getWriter().write(json);
         response.setContentType("application/json");
