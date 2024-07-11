@@ -44,7 +44,10 @@ public class ConversionRateServlet extends BaseServlet {
     }
 
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) {
-        conversionRateService.update(getPayload(req, ConversionRatePayload.class));
-        resp.setStatus(SC_NO_CONTENT);
+        if (conversionRateService.update(getPayload(req, ConversionRatePayload.class))) {
+            resp.setStatus(SC_NO_CONTENT);
+        } else {
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
     }
 }
