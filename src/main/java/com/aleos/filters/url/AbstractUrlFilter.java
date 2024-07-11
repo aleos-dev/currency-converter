@@ -1,5 +1,7 @@
 package com.aleos.filters.url;
 
+import com.aleos.exceptions.PayloadCastException;
+import com.aleos.exceptions.servlets.PayloadNotFoundException;
 import com.aleos.filters.AbstractBaseFilter;
 import com.aleos.models.dtos.out.Error;
 import com.aleos.util.AttributeNameUtil;
@@ -41,7 +43,17 @@ public abstract class AbstractUrlFilter extends AbstractBaseFilter {
     }
 
     protected <T> T getPayloadAttribute(Class<T> clazz, HttpServletRequest req) {
-        return clazz.cast(req.getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR));
+        Object rawPayload = req.getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
+
+        if (rawPayload == null) {
+            throw new PayloadNotFoundException("Payload is not found for %s".formatted(clazz.getSimpleName()));
+
+        } else if (!clazz.isInstance(rawPayload)) {
+            throw new PayloadCastException("Payload type is incorrect for %s. Expected: %s, Found: %s".formatted(
+                    this.getClass().getSimpleName(), clazz.getSimpleName(), rawPayload.getClass().getSimpleName()));
+        } else {
+            return clazz.cast(rawPayload);
+        }
     }
 
     protected void setPayloadAttribute(Object payload, HttpServletRequest req) {
