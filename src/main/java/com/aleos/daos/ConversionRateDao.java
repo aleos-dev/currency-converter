@@ -32,15 +32,15 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
     private static final String SELECT_ALL_SQL = """
             SELECT
                 cr.id AS cr_id,
-                cr.base_currency_id AS cr_base_currency_id,
-                cr.target_currency_id AS cr_target_currency_id,
+                cr.base_currency_id AS cr_base_id,
+                cr.target_currency_id AS cr_target_id,
                 cr.rate AS cr_rate,
-                base_cur.fullname AS base_cur_fullname,
-                base_cur.code AS base_cur_code,
-                base_cur.sign AS base_cur_sign,
-                target_cur.fullname AS target_cur_fullname,
-                target_cur.code AS target_cur_code,
-                target_cur.sign AS target_cur_sign
+                base_cur.fullname AS base_fullname,
+                base_cur.code AS base_code,
+                base_cur.sign AS base_sign,
+                target_cur.fullname AS target_fullname,
+                target_cur.code AS target_code,
+                target_cur.sign AS target_sign
             FROM conversion_rates cr
             JOIN currencies AS base_cur ON cr.base_currency_id = base_cur.id
             JOIN currencies AS target_cur ON cr.target_currency_id = target_cur.id
@@ -66,70 +66,70 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
     private static final String SELECT_CROSS_RATE_BY_CODE = """
             WITH
             indirect_rates AS (
-            -- c -> a & c -> b
-                 SELECT
-                        from_currency.code AS base_cur_code,
-                        target_currency.code AS target_cur_code,
-                        (1.0 / cr1.rate * cr2.rate) AS cr_rate
-                    FROM conversion_rates AS cr1
-                    JOIN conversion_rates AS cr2 ON cr1.base_currency_id = cr2.base_currency_id
-                    JOIN currencies AS from_currency ON cr1.target_currency_id = from_currency.id
-                    JOIN currencies AS target_currency ON target_currency.id = cr2.target_currency_id
-                    WHERE (from_currency.code = ? AND target_currency.code = ?)
-            
-                 UNION
-            
-            -- a -> c & c -> b
+                -- c -> a & c -> b
                 SELECT
-                    from_currency.code AS base_cur_code,
-                    target_currency.code AS target_cur_code,
+                    f.code AS base_code,
+                    t.code AS target_code,
+                    (1.0 / cr1.rate * cr2.rate) AS cr_rate
+                FROM conversion_rates AS cr1
+                JOIN conversion_rates AS cr2 ON cr1.base_currency_id = cr2.base_currency_id
+                JOIN currencies AS f ON cr1.target_currency_id = f.id
+                JOIN currencies AS t ON t.id = cr2.target_currency_id
+                WHERE (f.code = ? AND t.code = ?)
+
+                UNION
+
+                -- a -> c & c -> b
+                SELECT
+                    f.code AS base_code,
+                    t.code AS target_code,
                     (cr1.rate * cr2.rate) AS cr_rate
                 FROM conversion_rates AS cr1
                 JOIN conversion_rates AS cr2 ON cr1.target_currency_id = cr2.base_currency_id
-                JOIN currencies AS from_currency ON cr1.base_currency_id = from_currency.id
-                JOIN currencies AS target_currency ON cr2.target_currency_id = target_currency.id
-                WHERE (from_currency.code = ? AND target_currency.code = ?)
-            
+                JOIN currencies AS f ON cr1.base_currency_id = f.id
+                JOIN currencies AS t ON cr2.target_currency_id = t.id
+                WHERE (f.code = ? AND t.code = ?)
+
                 UNION
-            
-            -- a -> c & b -> c
+
+                -- a -> c & b -> c
                 SELECT
-                    from_currency.code AS base_cur_code,
-                    target_currency.code AS target_cur_code,
+                    f.code AS base_code,
+                    t.code AS target_code,
                     (cr1.rate * cr2.rate) AS cr_rate
                 FROM conversion_rates AS cr1
                 JOIN conversion_rates AS cr2 ON cr1.target_currency_id = cr2.target_currency_id
-                JOIN currencies AS from_currency ON cr1.base_currency_id = from_currency.id
-                JOIN currencies AS target_currency ON   target_currency.id = cr2.base_currency_id
-                WHERE (from_currency.code = ? AND target_currency.code = ?)
-            
+                JOIN currencies AS f ON cr1.base_currency_id = f.id
+                JOIN currencies AS t ON t.id = cr2.base_currency_id
+                WHERE (f.code = ? AND t.code = ?)
+
                 UNION
-            
-            -- c -> a & b -> c
+
+                -- c -> a & b -> c
                 SELECT
-                    from_currency.code AS base_cur_code,
-                    target_currency.code AS target_cur_code,
+                    f.code AS base_code,
+                    t.code AS target_code,
                     (cr1.rate * cr2.rate) AS cr_rate
                 FROM conversion_rates AS cr1
                 JOIN conversion_rates AS cr2 ON cr1.base_currency_id = cr2.target_currency_id
-                JOIN currencies AS from_currency ON cr1.target_currency_id = from_currency.id
-                JOIN currencies AS target_currency ON   target_currency.id = cr2.base_currency_id
-                WHERE (from_currency.code = ? AND target_currency.code = ?)
+                JOIN currencies AS f ON cr1.target_currency_id = f.id
+                JOIN currencies AS t ON t.id = cr2.base_currency_id
+                WHERE (f.code = ? AND t.code = ?)
             )
             SELECT
                 0 AS cr_id,
-                from_currency.id AS cr_base_currency_id,
-                target_currency.id AS cr_target_currency_id,
+                from_currency.id AS cr_base_id,
+                target_currency.id AS cr_target_id,
                 cr.cr_rate AS cr_rate,
-                from_currency.fullname AS base_cur_fullname,
-                from_currency.code AS base_cur_code,
-                from_currency.sign AS base_cur_sign,
-                target_currency.fullname AS target_cur_fullname,
-                target_currency.code AS target_cur_code,
-                target_currency.sign AS target_cur_sign
+                from_currency.fullname AS base_fullname,
+                from_currency.code AS base_code,
+                from_currency.sign AS base_sign,
+                target_currency.fullname AS target_fullname,
+                target_currency.code AS target_code,
+                target_currency.sign AS target_sign
             FROM indirect_rates AS cr
-            JOIN currencies AS from_currency ON cr.base_cur_code = from_currency.code
-            JOIN currencies AS target_currency ON cr.target_cur_code = target_currency.code
+            JOIN currencies AS from_currency ON cr.base_code = from_currency.code
+            JOIN currencies AS target_currency ON cr.target_code = target_currency.code
             ORDER BY cr_rate DESC
             LIMIT 1;
             """;
@@ -152,52 +152,49 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
             return conversionRate;
 
         } catch (SQLException e) {
-            try {
-                if (connection != null) {
-                    connection.rollback();
-                }
-            } catch (SQLException rollbackEx) {
-                throw new DaoOperationException("Unknown database error, rollback is failed", e);
-            }
+            rollback(e, connection);
             throw new DaoOperationException("Transaction failed and was rolled back.", e);
         } finally {
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    logger.log(Level.SEVERE, "Unknown database error, cannot close connection.");
-                }
-            }
+            closeConnection(connection);
         }
     }
 
-    public Optional<ConversionRate> find(@NonNull String from, @NonNull String to) {
+    public Optional<ConversionRate> find(@NonNull String baseCurrencyCode, @NonNull String targetCurrencyCode) {
         try (var connection = dataSource.getConnection();
-             var statement = createFindStatement(from, to, connection)
+             var statement = connection.prepareStatement(SELECT_BY_CURRENCY_CODES_SQL)
         ) {
+
+            setPreparedStatementParameters(statement, baseCurrencyCode, targetCurrencyCode);
             var resultSet = statement.executeQuery();
+
             return mapSingleResult(resultSet);
+
         } catch (SQLException e) {
             throw new DaoOperationException(e.getMessage(), e);
         }
     }
 
-    public boolean update(@NonNull String from, @NonNull String to, @NonNull BigDecimal rate) {
+    public boolean update(@NonNull String baseCurrencyCode,
+                          @NonNull String targetCurrencyCode,
+                          @NonNull BigDecimal rate) {
         try (var connection = dataSource.getConnection();
              var statement = connection.prepareStatement(UPDATE_RATE_BY_CURRENCY_CODES_SQL)
         ) {
 
-            populateUpdateStatement(statement, from, to, rate);
-            return statement.executeUpdate() > 0;
+            setPreparedStatementParameters(statement, baseCurrencyCode, targetCurrencyCode, rate);
+            int rowsAffected = statement.executeUpdate();
+
+            return rowsAffected > 0;
 
         } catch (SQLException e) {
             throw new DaoOperationException(e.getMessage(), e);
         }
     }
 
-    public Optional<ConversionRate> findCrossRate(@NonNull String from, @NonNull String to) {
+    public Optional<ConversionRate> findCrossRate(@NonNull String baseCurrencyCode,
+                                                  @NonNull String targetCurrencyCode) {
         try (var connection = dataSource.getConnection();
-             var statement = createFindCrossRateStatement(from, to, connection)) {
+             var statement = createFindCrossRateStatement(baseCurrencyCode, targetCurrencyCode, connection)) {
 
             var resultSet = statement.executeQuery();
             return mapSingleResult(resultSet);
@@ -208,10 +205,13 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
     }
 
     @Override
-    protected PreparedStatement createSaveStatement(ConversionRate newConversionRate, Connection connection)
-            throws SQLException {
+    protected PreparedStatement createSaveStatement(ConversionRate conversionRate,
+                                                    Connection connection) throws SQLException {
         var statement = connection.prepareStatement(INSERT_SQL, RETURN_GENERATED_KEYS);
-        populateStatementWithParameters(statement, newConversionRate);
+        setPreparedStatementParameters(statement,
+                conversionRate.getBaseCurrency().getId(),
+                conversionRate.getTargetCurrency().getId(),
+                conversionRate.getRate());
 
         return statement;
     }
@@ -219,7 +219,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
     @Override
     protected PreparedStatement createFindStatement(Integer id, Connection connection) throws SQLException {
         var statement = connection.prepareStatement(SELECT_BY_ID_SQL, RETURN_GENERATED_KEYS);
-        statement.setInt(1, id);
+        setPreparedStatementParameters(statement, id);
 
         return statement;
     }
@@ -228,8 +228,12 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
     protected PreparedStatement createUpdateStatement(ConversionRate conversionRate, Connection connection)
             throws SQLException {
         var statement = connection.prepareStatement(UPDATE_BY_ID_SQL);
-        populateStatementWithParameters(statement, conversionRate);
-        statement.setInt(4, conversionRate.getId());
+
+        setPreparedStatementParameters(statement,
+                conversionRate.getBaseCurrency().getId(),
+                conversionRate.getTargetCurrency().getId(),
+                conversionRate.getRate(),
+                conversionRate.getId());
 
         return statement;
     }
@@ -249,35 +253,23 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
 
     @Override
     protected ConversionRate mapRowToEntity(ResultSet rs) throws SQLException {
-        var baseCurrency = new Currency();
-        baseCurrency.setId(rs.getInt("cr_base_currency_id"));
-        baseCurrency.setFullname(rs.getString("base_cur_fullname"));
-        baseCurrency.setCode(rs.getString("base_cur_code"));
-        baseCurrency.setSign(rs.getString("base_cur_sign"));
-
-        var targetCurrency = new Currency();
-        targetCurrency.setId(rs.getInt("cr_target_currency_id"));
-        targetCurrency.setFullname(rs.getString("target_cur_fullname"));
-        targetCurrency.setCode(rs.getString("target_cur_code"));
-        targetCurrency.setSign(rs.getString("target_cur_sign"));
-
-        var conversionRate = new ConversionRate();
-        conversionRate.setId(rs.getInt("cr_id"));
-        conversionRate.setBaseCurrency(baseCurrency);
-        conversionRate.setTargetCurrency(targetCurrency);
-        conversionRate.setRate(rs.getBigDecimal("cr_rate"));
-
-        return conversionRate;
+        return new ConversionRate(
+                rs.getInt("cr_id"),
+                new Currency(
+                        rs.getInt("cr_base_id"),
+                        rs.getString("base_fullname"),
+                        rs.getString("base_code"),
+                        rs.getString("base_sign")
+                ),
+                new Currency(
+                        rs.getInt("cr_target_id"),
+                        rs.getString("target_fullname"),
+                        rs.getString("target_code"),
+                        "target_sign"
+                ),
+                rs.getBigDecimal("cr_rate")
+        );
     }
-
-    @Override
-    protected void populateStatementWithParameters(
-            PreparedStatement statement, ConversionRate conversionRate) throws SQLException {
-        statement.setInt(1, conversionRate.getBaseCurrency().getId());
-        statement.setInt(2, conversionRate.getTargetCurrency().getId());
-        statement.setBigDecimal(3, conversionRate.getRate());
-    }
-
 
     protected PreparedStatement createFindCrossRateStatement(String from,
                                                              String to,
@@ -290,70 +282,63 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
         statement.setString(2, to);
 
         // c->a & c->b
-        statement.setString(1, from);
-        statement.setString(2, to);
+        statement.setString(3, from);
+        statement.setString(4, to);
 
         // a->c & b->c
-        statement.setString(1, from);
-        statement.setString(2, to);
+        statement.setString(5, from);
+        statement.setString(6, to);
 
         // c->a & b->c
-        statement.setString(1, from);
-        statement.setString(2, to);
+        statement.setString(7, from);
+        statement.setString(8, to);
 
         return statement;
     }
 
-    private ConversionRate saveAndFetch(String from,
-                                        String to,
+    private ConversionRate saveAndFetch(String baseCurrencyCode,
+                                        String targetCurrencyCode,
                                         BigDecimal rate,
                                         Connection connection) throws SQLException {
 
-        int id = saveByCodes(from, to, rate, connection);
+        int id = save(baseCurrencyCode, targetCurrencyCode, rate, connection);
 
-        return find(id, connection)
-                .orElseThrow(() -> new DaoOperationException(String.format(
-                        "Unexpected database error! The saved with id = %s is not found in the database.", id)));
+        return find(id, connection).orElseThrow(() -> new DaoOperationException(String.format(
+                "Unexpected database error! The saved with id = %s is not found in the database.", id)));
     }
 
-    private int saveByCodes(String from,
-                            String to,
-                            BigDecimal rate,
-                            Connection connection) throws SQLException {
-
+    private int save(String baseCurrencyCode,
+                     String targetCurrencyCode,
+                     BigDecimal rate,
+                     Connection connection) throws SQLException {
         try (var statement = connection.prepareStatement(
                 INSERT_WITH_CURRENCY_CODES_AS_FOREIGN_KEYS_SQL, RETURN_GENERATED_KEYS)) {
 
-            populateInsertStatement(statement, from, to, rate);
-
+            setPreparedStatementParameters(statement, baseCurrencyCode, targetCurrencyCode, rate);
             statement.executeUpdate();
+
             return fetchGeneratedId(statement);
         }
     }
 
-    private PreparedStatement createFindStatement(String from, String to, Connection connection) throws SQLException {
-        var statement = connection.prepareStatement(SELECT_BY_CURRENCY_CODES_SQL);
-        statement.setString(1, from);
-        statement.setString(2, to);
-
-        return statement;
+    private void closeConnection(Connection connection) {
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                logger.log(Level.SEVERE, "Unknown database error, cannot close connection.");
+            }
+        }
     }
 
-    private void populateInsertStatement(PreparedStatement statement,
-                                         String from,
-                                         String to,
-                                         BigDecimal rate) throws SQLException {
-        statement.setString(1, from);
-        statement.setString(2, to);
-        statement.setBigDecimal(3, rate);
-    }
-
-    private void populateUpdateStatement(PreparedStatement statement,
-                                         String from,
-                                         String to,
-                                         BigDecimal rate) throws SQLException {
-        statement.setBigDecimal(1, rate);
-        statement.setString(2, from);
-        statement.setString(3, to);
+    private void rollback(SQLException originalEx, Connection connection) {
+        try {
+            if (connection != null) {
+                connection.rollback();
+            }
+        } catch (SQLException rollbackEx) {
+            originalEx.addSuppressed(rollbackEx);
+            throw new DaoOperationException("Unknown database error, rollback is failed", originalEx);
+        }
     }
 }

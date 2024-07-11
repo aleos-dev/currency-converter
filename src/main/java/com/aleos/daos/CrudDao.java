@@ -1,11 +1,13 @@
 package com.aleos.daos;
 
+import com.aleos.exceptions.UnknownParameterTypeException;
 import com.aleos.exceptions.daos.DaoOperationException;
 import com.aleos.exceptions.daos.UniqueConstraintViolationException;
 import com.aleos.models.entities.Entity;
 import lombok.NonNull;
 
 import javax.sql.DataSource;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -63,7 +65,8 @@ public abstract class CrudDao<E extends Entity<K>, K> {
              var statement = createUpdateStatement(entity, connection)
         ) {
 
-            return statement.executeUpdate() > 0;
+            int rowsAffected = statement.executeUpdate();
+            return rowsAffected > 0;
 
         } catch (SQLException e) {
             throw new DaoOperationException(e.getMessage(), e);
@@ -75,7 +78,8 @@ public abstract class CrudDao<E extends Entity<K>, K> {
              var statement = createDeleteStatement(id, connection)
         ) {
 
-            return statement.executeUpdate() > 0;
+            int rowsAffected = statement.executeUpdate();
+            return rowsAffected > 0;
 
         } catch (SQLException e) {
             throw new DaoOperationException(e.getMessage(), e);
@@ -125,6 +129,22 @@ public abstract class CrudDao<E extends Entity<K>, K> {
                 : Optional.empty();
     }
 
+    protected void setPreparedStatementParameters(PreparedStatement statement,
+                                                  Object... parameters) throws SQLException {
+        for (int i = 1; i <= parameters.length; i++) {
+            Object param = parameters[i - 1];
+            if (param instanceof String str) {
+                statement.setString(i, str);
+            } else if (param instanceof BigDecimal bd) {
+                statement.setBigDecimal(i, bd);
+            } else if (param instanceof Integer num) {
+                statement.setInt(i, num);
+            } else {
+                throw new UnknownParameterTypeException("Need add handler for new parameter type: " + param.getClass());
+            }
+        }
+    }
+
     protected abstract PreparedStatement createSaveStatement(E entity, Connection connection) throws SQLException;
 
     protected abstract PreparedStatement createSelectAllStatement(Connection connection) throws SQLException;
@@ -136,6 +156,4 @@ public abstract class CrudDao<E extends Entity<K>, K> {
     protected abstract PreparedStatement createDeleteStatement(K id, Connection connection) throws SQLException;
 
     protected abstract E mapRowToEntity(ResultSet resultSet) throws SQLException;
-
-    protected abstract void populateStatementWithParameters(PreparedStatement statement, E entity) throws SQLException;
 }

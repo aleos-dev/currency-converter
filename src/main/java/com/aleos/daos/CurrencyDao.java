@@ -28,10 +28,10 @@ public class CurrencyDao extends CrudDao<Currency, Integer> {
         super(dataSource);
     }
 
-    public Optional<Currency> find(@NonNull String code) {
+    public Optional<Currency> find(@NonNull String currencyCode) {
         try (var connection = dataSource.getConnection()) {
 
-            return find(code, connection);
+            return find(currencyCode, connection);
 
         } catch (SQLException e) {
             throw new DaoOperationException(e.getMessage(), e);
@@ -39,9 +39,9 @@ public class CurrencyDao extends CrudDao<Currency, Integer> {
     }
 
     @Override
-    protected PreparedStatement createSaveStatement(Currency newCurrency, Connection connection) throws SQLException {
+    protected PreparedStatement createSaveStatement(Currency currency, Connection connection) throws SQLException {
         var statement = connection.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS);
-        populateStatementWithParameters(statement, newCurrency);
+        setPreparedStatementParameters(statement, currency.getFullname(), currency.getCode(), currency.getSign());
 
         return statement;
     }
@@ -49,7 +49,7 @@ public class CurrencyDao extends CrudDao<Currency, Integer> {
     @Override
     protected PreparedStatement createFindStatement(Integer id, Connection connection) throws SQLException {
         var statement = connection.prepareStatement(SELECT_BY_ID_SQL, Statement.RETURN_GENERATED_KEYS);
-        statement.setInt(1, id);
+        setPreparedStatementParameters(statement, id);
 
         return statement;
     }
@@ -57,8 +57,12 @@ public class CurrencyDao extends CrudDao<Currency, Integer> {
     @Override
     protected PreparedStatement createUpdateStatement(Currency entity, Connection connection) throws SQLException {
         var statement = connection.prepareStatement(UPDATE_BY_ID_SQL);
-        populateStatementWithParameters(statement, entity);
-        statement.setInt(4, entity.getId());
+        setPreparedStatementParameters(
+                statement,
+                entity.getFullname(),
+                entity.getCode(),
+                entity.getSign(),
+                entity.getId());
 
         return statement;
     }
@@ -71,15 +75,14 @@ public class CurrencyDao extends CrudDao<Currency, Integer> {
     @Override
     protected PreparedStatement createDeleteStatement(Integer id, Connection connection) throws SQLException {
         var statement = connection.prepareStatement(DELETE_BY_ID_SQL);
-        statement.setInt(1, id);
+        setPreparedStatementParameters(statement, id);
 
         return statement;
     }
 
-    protected PreparedStatement createFindStatement(String code, Connection connection) throws SQLException {
-        var statement =
-                connection.prepareStatement(SELECT_BY_CODE_SQL, Statement.RETURN_GENERATED_KEYS);
-        statement.setString(1, code);
+    protected PreparedStatement createFindStatement(String currencyCode, Connection connection) throws SQLException {
+        var statement = connection.prepareStatement(SELECT_BY_CODE_SQL, Statement.RETURN_GENERATED_KEYS);
+        setPreparedStatementParameters(statement, currencyCode);
 
         return statement;
     }
@@ -93,14 +96,6 @@ public class CurrencyDao extends CrudDao<Currency, Integer> {
         currency.setSign(rs.getString("sign"));
 
         return currency;
-    }
-
-    @Override
-    protected void populateStatementWithParameters(PreparedStatement statement, Currency entity)
-            throws SQLException {
-        statement.setString(1, entity.getFullname());
-        statement.setString(2, entity.getCode());
-        statement.setString(3, entity.getSign());
     }
 
     private Optional<Currency> find(String code, Connection connection) throws SQLException {
