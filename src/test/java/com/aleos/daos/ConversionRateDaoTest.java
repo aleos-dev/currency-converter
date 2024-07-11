@@ -8,11 +8,9 @@ import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ConversionRateDaoTest {
 
@@ -28,93 +26,68 @@ class ConversionRateDaoTest {
 
     @Test
     void testSaveConversionRate() {
-        Currency jpy = currencyDao.findByCode("JPY").orElseThrow();
-        Currency rub = currencyDao.findByCode("RUB").orElseThrow();
+        Currency jpy = currencyDao.find("JPY").orElseThrow();
+        Currency rub = currencyDao.find("RUB").orElseThrow();
+        var newEntity = new ConversionRate(null, jpy, rub, BigDecimal.valueOf(0.85));
 
-        ConversionRate conversionRate = new ConversionRate(null, jpy, rub, BigDecimal.valueOf(0.85));
-        conversionRateDao.save(conversionRate);
+        conversionRateDao.save(newEntity);
 
-        Optional<ConversionRate> found = conversionRateDao.findByCode("JPYRUB");
-        assertConversionRate(found.orElseThrow(), jpy.getId(), rub.getId(), BigDecimal.valueOf(0.85));
+        var founded = conversionRateDao.find("JPY", "RUB").orElseThrow();
+        assertNotNull(founded.getId());
+        assertEquals(founded.getBaseCurrency(), newEntity.getBaseCurrency());
+        assertEquals(founded.getTargetCurrency(), newEntity.getTargetCurrency());
+        assertEquals(founded.getRate(), newEntity.getRate());
     }
+
 
     @Test
     void testFindAllConversionRates() {
+        var initSize = conversionRateDao.findAll();
+        var newConversionRate = ConversionRate.builder()
+                .baseCurrency(currencyDao.find(5).orElseThrow())
+                .targetCurrency(currencyDao.find(6).orElseThrow())
+                .rate(BigDecimal.TEN)
+                .build();
 
-        int initialRows = conversionRateDao.findAll().size();
+        conversionRateDao.save(newConversionRate);
 
-        Currency a = insertCurrency("AAA name", "AAA", "$");
-        Currency b = insertCurrency("BBB name", "BBB", "€");
-        Currency c = insertCurrency("CCC name", "CCC", "£");
-
-        insertConversionRate(a, b, BigDecimal.valueOf(0.85));
-        insertConversionRate(a, c, BigDecimal.valueOf(0.75));
-
-        List<ConversionRate> conversionRates = conversionRateDao.findAll();
-        assertEquals(initialRows + 2, conversionRates.size());
+        var actualSize = conversionRateDao.findAll();
+        assertEquals(initSize.size() + 1, actualSize.size());
+        assertNotNull(newConversionRate.getId());
     }
 
     @Test
     void testFindConversionRateById() {
 
-        Currency ust = insertCurrency("UST name", "UST", "$");
-        Currency eut = insertCurrency("EUT name", "EUT", "€");
+        var optional = conversionRateDao.find(1);
 
-        insertConversionRate(ust, eut, BigDecimal.valueOf(0.85));
-
-        Optional<ConversionRate> conversionRate = conversionRateDao.findByCode("USTEUT");
-        assertConversionRate(conversionRate.orElseThrow(), ust.getId(), eut.getId(), BigDecimal.valueOf(0.85));
+        var result = optional.orElseThrow();
+        assertEquals("USD", result.getBaseCurrency().getCode());
+        assertEquals("EUR", result.getTargetCurrency().getCode());
+        assertEquals(result.getRate(), BigDecimal.valueOf(0.93));
     }
 
     @Test
     void testUpdateConversionRate() {
 
-        var conversionRate = conversionRateDao.findByCode("USDEUR").orElseThrow();
+        var initial = conversionRateDao.find(1).orElseThrow();
+        var newRate = BigDecimal.valueOf(0.90);
+        initial.setRate(newRate);
 
-        conversionRate.setRate(BigDecimal.valueOf(0.90));
-        conversionRateDao.update(conversionRate);
+        conversionRateDao.update(initial);
 
-        Optional<ConversionRate> updatedConversionRate = conversionRateDao.findById(conversionRate.getId());
-        assertConversionRate(
-                updatedConversionRate.orElseThrow(),
-                conversionRate.getBaseCurrency().getId(),
-                conversionRate.getTargetCurrency().getId(),
-                BigDecimal.valueOf(0.90));
+        var actual = conversionRateDao.find(initial.getId()).orElseThrow();
+        assertEquals(actual.getId(), initial.getId());
+        assertEquals(actual.getRate(), newRate);
     }
 
     @Test
     void testDeleteConversionRate() {
-
-        int id = conversionRateDao.findByCode("USDEUR").orElseThrow().getId();
+        int id = conversionRateDao.find(1).orElseThrow().getId();
 
         conversionRateDao.delete(id);
 
-        Optional<ConversionRate> deletedConversionRate = conversionRateDao.findById(id);
+        Optional<ConversionRate> deletedConversionRate = conversionRateDao.find(id);
         assertFalse(deletedConversionRate.isPresent());
-    }
-
-    private Currency insertCurrency(String fullname, String code, String sign) {
-
-        Currency currency = new Currency(null, fullname, code, sign);
-        currencyDao.save(currency);
-        return currencyDao.findByCode(code).orElseThrow();
-    }
-
-    private void insertConversionRate(Currency baseCurrency, Currency targetCurrency, BigDecimal rate) {
-
-        ConversionRate conversionRate = new ConversionRate(null, baseCurrency, targetCurrency, rate);
-        conversionRateDao.save(conversionRate);
-    }
-
-    private void assertConversionRate(
-            ConversionRate cr,
-            Integer baseCurrencyId,
-            Integer targetCurrencyId,
-            BigDecimal rate
-    ) {
-
-        assertEquals(baseCurrencyId, cr.getBaseCurrency().getId(), "Base currency should match");
-        assertEquals(targetCurrencyId, cr.getTargetCurrency().getId(), "Target currency should match");
-        assertEquals(rate, cr.getRate(), "Rate should match");
     }
 }

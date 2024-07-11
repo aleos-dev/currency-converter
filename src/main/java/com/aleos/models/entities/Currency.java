@@ -8,6 +8,7 @@ import lombok.*;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Currency implements Entity<Integer> {
 
     Integer id;

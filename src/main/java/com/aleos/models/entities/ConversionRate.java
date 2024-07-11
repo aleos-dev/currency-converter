@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 @EqualsAndHashCode(of = "id")
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ConversionRate implements Entity<Integer> {
 
     Integer id;

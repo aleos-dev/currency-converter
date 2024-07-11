@@ -31,7 +31,7 @@ class CurrencyDaoTest {
         Currency currency = new Currency(null, "US TEST", "UST", "$");
         currencyDao.save(currency);
 
-        Optional<Currency> found = currencyDao.findByCode("UST");
+        Optional<Currency> found = currencyDao.find("UST");
 
         assertTrue(found.isPresent(), "Currency should be present");
         assertCurrency(found.get(), "US TEST", "UST", "$");
@@ -52,9 +52,9 @@ class CurrencyDaoTest {
     void testFindCurrencyById() throws SQLException {
 
         insertCurrency("United States TEST", "UST", "$");
-        var founded = currencyDao.findByCode("UST").orElseThrow();
+        var founded = currencyDao.find("UST").orElseThrow();
 
-        Optional<Currency> currency = currencyDao.findById(founded.getId());
+        Optional<Currency> currency = currencyDao.find(founded.getId());
 
         assertTrue(currency.isPresent(), "Currency should be present");
         assertCurrency(currency.get(), "United States TEST", "UST", "$");
@@ -65,7 +65,7 @@ class CurrencyDaoTest {
 
         insertCurrency("United States TEST", "USV", "#");
 
-        Optional<Currency> currency = currencyDao.findByCode("USV");
+        Optional<Currency> currency = currencyDao.find("USV");
 
         assertTrue(currency.isPresent(), "Currency should be present");
         assertCurrency(currency.get(), "United States TEST", "USV", "#");
@@ -75,11 +75,11 @@ class CurrencyDaoTest {
     void testUpdateCurrency() throws SQLException {
         insertCurrency("United States TEST", "UST", "$");
 
-        Currency currency = currencyDao.findByCode("UST").orElseThrow();
+        Currency currency = currencyDao.find("UST").orElseThrow();
         currency.setFullname("CHANGED");
         currencyDao.update(currency);
 
-        Optional<Currency> updatedCurrency = currencyDao.findById(currency.getId());
+        Optional<Currency> updatedCurrency = currencyDao.find(currency.getId());
         assertTrue(updatedCurrency.isPresent(), "Currency should be present");
         assertCurrency(updatedCurrency.get(), "CHANGED", "UST", "$");
     }
@@ -88,10 +88,10 @@ class CurrencyDaoTest {
     void testDeleteCurrency() throws SQLException {
         insertCurrency("United States TEST", "UST", "$");
 
-        int id = currencyDao.findByCode("UST").orElseThrow().getId();
+        int id = currencyDao.find("UST").orElseThrow().getId();
         currencyDao.delete(id);
 
-        Optional<Currency> deletedCurrency = currencyDao.findById(id);
+        Optional<Currency> deletedCurrency = currencyDao.find(id);
         assertFalse(deletedCurrency.isPresent());
     }
 
