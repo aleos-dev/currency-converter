@@ -19,8 +19,12 @@ public class ConversionRateService {
     private final ConversionRateMapper mapper;
 
     public ConversionRateResponse save(@NonNull ConversionRatePayload payload) {
-        return mapper.toDto(conversionRateDao.saveAndFetch(
-                payload.baseCurrencyCode(), payload.targetCurrencyCode(), payload.rate()));
+        var conversionRate = conversionRateDao.saveAndFetch(
+                payload.baseCurrencyCode(),
+                payload.targetCurrencyCode(),
+                payload.rate());
+
+        return mapper.toDto(conversionRate);
     }
 
     public List<ConversionRateResponse> findAll() {
@@ -30,11 +34,13 @@ public class ConversionRateService {
     }
 
     public Optional<ConversionRateResponse> findByCode(@NonNull ConversionRateIdentifierPayload payload) {
-        return conversionRateDao.findByCode(payload.identifier()).map(mapper::toDto);
+
+        String identifier = payload.identifier();
+        return conversionRateDao.find(identifier.substring(0, 3), identifier.substring(3)).map(mapper::toDto);
     }
 
-    public void update(@NonNull ConversionRatePayload payload) {
-        conversionRateDao.updateRate(payload.baseCurrencyCode(), payload.targetCurrencyCode(), payload.rate());
+    public boolean update(@NonNull ConversionRatePayload payload) {
+        return conversionRateDao.update(payload.baseCurrencyCode(), payload.targetCurrencyCode(), payload.rate());
     }
 
     public void delete(int id) {

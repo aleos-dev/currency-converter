@@ -18,11 +18,13 @@ public class ConversionService {
     private final ConversionRateDao conversionRateDao;
 
     public Optional<ConversionResponse> convert(@NonNull ConversionPayload payload) {
-        String code = String.join("", payload.baseCurrencyCode(), payload.targetCurrencyCode());
+        var from = payload.baseCurrencyCode();
+        var to = payload.targetCurrencyCode();
 
-        return conversionRateDao.findByCode(code)
-                .or(() -> reverseConversion(code))
-                .or(() -> crossConversion(code))
+        return conversionRateDao
+                .find(from, to)
+                .or(() -> findReverseConversion(from, to))
+                .or(() -> findCrossRateConversion(from, to))
                 .map(entity -> composeConversionResponse(entity, payload.amount()));
     }
 
@@ -37,20 +39,8 @@ public class ConversionService {
         );
     }
 
-    private Optional<ConversionRate> crossConversion(String code) {
-        return conversionRateDao.findCrossRateByCode(code);
-    }
-
-    private Optional<ConversionRate> reverseConversion(String code) {
-        Optional<ConversionRate> byCode = conversionRateDao.findByCode(reverseCurrencyCode(code));
-
-        return byCode
-                .map(cr -> new ConversionRate(
-                        0,
-                        cr.getBaseCurrency(),
-                        cr.getTargetCurrency(),
-                        BigDecimal.ONE.divide(cr.getRate(), MathContext.DECIMAL64)
-                ));
+    private Optional<ConversionRate> findCrossRateConversion(String from, String to) {
+        return conversionRateDao.findCrossRate(from, to);
     }
 
     private Double convert(Double amount, BigDecimal rate) {
@@ -60,9 +50,15 @@ public class ConversionService {
                 .doubleValue();
     }
 
-    private String reverseCurrencyCode(String code) {
-        int codeLength = 3;
+    private Optional<ConversionRate> findReverseConversion(String from, String to) {
+        Optional<ConversionRate> byCode = conversionRateDao.find(to, from);
 
-        return code.substring(codeLength) + code.substring(0, codeLength);
+        return byCode
+                .map(cr -> new ConversionRate(
+                        0,
+                        cr.getBaseCurrency(),
+                        cr.getTargetCurrency(),
+                        BigDecimal.ONE.divide(cr.getRate(), MathContext.DECIMAL64)
+                ));
     }
 }

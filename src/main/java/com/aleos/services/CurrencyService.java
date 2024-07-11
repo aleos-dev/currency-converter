@@ -21,9 +21,7 @@ public class CurrencyService {
 
     public CurrencyResponse save(@NonNull CurrencyPayload payload) {
         Currency newCurrency = mapper.toEntity(payload);
-        int id = currencyDao.save(newCurrency);
-        newCurrency.setId(id);
-
+        currencyDao.save(newCurrency);
         return mapper.toDto(newCurrency);
     }
 
@@ -37,8 +35,8 @@ public class CurrencyService {
         String isDigitsRegex = "\\d+";
 
         return payload.identifier().matches(isDigitsRegex)
-                ? currencyDao.findById(Integer.parseInt(payload.identifier())).map(mapper::toDto)
-                : currencyDao.findByCode(payload.identifier()).map(mapper::toDto);
+                ? currencyDao.find(Integer.parseInt(payload.identifier())).map(mapper::toDto)
+                : currencyDao.find(payload.identifier()).map(mapper::toDto);
     }
 
     public void update(int id, @NonNull CurrencyPayload payload) {
