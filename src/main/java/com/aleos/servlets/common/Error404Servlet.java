@@ -11,9 +11,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @WebServlet("/error404")
-public class Error404JsonServlet extends HttpServlet {
+public class Error404Servlet extends HttpServlet {
 
-    private static final Logger LOGGER = Logger.getLogger(Error404JsonServlet.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(Error404Servlet.class.getName());
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) {
