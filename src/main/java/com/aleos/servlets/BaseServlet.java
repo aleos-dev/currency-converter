@@ -10,6 +10,6 @@ public abstract class BaseServlet extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        DependencyInjector.inject(this, config.getServletContext());
+        DependencyInjector.inject(config.getServletContext(), this);
     }
 }

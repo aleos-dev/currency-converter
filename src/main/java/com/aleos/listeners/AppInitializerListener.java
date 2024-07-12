@@ -2,7 +2,6 @@ package com.aleos.listeners;
 
 import com.aleos.daos.ConversionRateDao;
 import com.aleos.daos.CurrencyDao;
-import com.aleos.exceptions.servlets.ContextInitializationException;
 import com.aleos.mappers.ConversionRateMapper;
 import com.aleos.mappers.CurrencyMapper;
 import com.aleos.services.CacheService;
@@ -10,113 +9,57 @@ import com.aleos.services.ConversionRateService;
 import com.aleos.services.ConversionService;
 import com.aleos.services.CurrencyService;
 import com.aleos.servlets.*;
-import com.aleos.util.DbUtil;
+import com.aleos.util.DependencyInjector;
 import com.aleos.util.PropertiesUtil;
-import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validators.ConversionRateValidator;
 import com.aleos.validators.CurrencyValidator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
-import jakarta.servlet.ServletRegistration;
 import jakarta.servlet.annotation.WebListener;
-import jakarta.servlet.http.HttpServlet;
 import org.modelmapper.ModelMapper;
 
-import javax.sql.DataSource;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 @WebListener
 public class AppInitializerListener implements ServletContextListener {
 
-    private final Set<Class<?>> initializerSet = new LinkedHashSet<>();
+    private static final Set<Class<?>> declaredComponents = new LinkedHashSet<>(Arrays.asList(
+
+            // Component classes here will be put to ServletContext
+            ModelMapper.class,
+            CurrencyMapper.class,
+            ConversionRateMapper.class,
+
+            CurrencyDao.class,
+            ConversionRateDao.class,
+
+            CacheService.class,
+            CurrencyService.class,
+            ConversionRateService.class,
+            ConversionService.class,
+
+            CurrencyValidator.class,
+            ConversionRateValidator.class
+    ));
 
     @Override
-    public void contextInitialized(ServletContextEvent sce) {
-        initDataSource(sce);
-        initObjectMapper(sce);
+    public void contextInitialized(ServletContextEvent event) {
 
-        initializerSet.add(ModelMapper.class);
-        initializerSet.add(CurrencyMapper.class);
-        initializerSet.add(ConversionRateMapper.class);
-
-        initializerSet.add(CurrencyDao.class);
-        initializerSet.add(ConversionRateDao.class);
-
-        initializerSet.add(CacheService.class);
-        initializerSet.add(CurrencyService.class);
-        initializerSet.add(ConversionRateService.class);
-        initializerSet.add(ConversionService.class);
-
-        initializerSet.add(CurrencyValidator.class);
-        initializerSet.add(ConversionRateValidator.class);
-
-        for (var clazz : initializerSet) {
-            var instance = initializeClass(clazz, sce);
-            var attributeName = RequestAttributeUtil.getName(clazz);
-            sce.getServletContext().setAttribute(attributeName, instance);
-        }
+        DependencyInjector.initializeDataSource(event);
+        DependencyInjector.initializeObjectMapper(event);
+        DependencyInjector.initializeComponents(event, declaredComponents);
 
         // register servlets manually to dynamically load URL patterns and other configurations from property files
-        registerServlets(sce.getServletContext());
+        registerServlets(event);
     }
 
-    private Object initializeClass(Class<?> clazz, ServletContextEvent sce) {
-        try {
-            Constructor<?>[] constructors = clazz.getDeclaredConstructors();
-            for (Constructor<?> constructor : constructors) {
-                Class<?>[] parameterTypes = constructor.getParameterTypes();
-                if (parameterTypes.length == 0) {
-                    return constructor.newInstance();
-                } else {
-                    Object[] parameters = new Object[parameterTypes.length];
-                    for (int i = 0; i < parameterTypes.length; i++) {
-                        String attributeName = RequestAttributeUtil.getName(parameterTypes[i]);
-                        parameters[i] = sce.getServletContext().getAttribute(attributeName);
-                    }
-                    return constructor.newInstance(parameters);
-                }
-            }
-            throw new NoSuchMethodException("No suitable constructor found for " + clazz.getName());
-        } catch (InstantiationException
-                 | InvocationTargetException
-                 | NoSuchMethodException
-                 | IllegalAccessException e) {
-            throw new ContextInitializationException("Error initializing context", e);
-        }
-    }
-
-    private void initDataSource(ServletContextEvent sce) {
-
-        // Initialize DataSource separately using the utility class
-        DataSource dataSource = DbUtil.getDataSource();
-        String attributeName = RequestAttributeUtil.getName(DataSource.class);
-        sce.getServletContext().setAttribute(attributeName, dataSource);
-    }
-
-    private void initObjectMapper(ServletContextEvent sce) {
-
-        // Initialize ObjectMapper separately due to complex initialization requirements
-        ObjectMapper objectMapper = new ObjectMapper();
-        String attributeName = RequestAttributeUtil.getName(ObjectMapper.class);
-        sce.getServletContext().setAttribute(attributeName, objectMapper);
-    }
-
-    private void registerServlets(ServletContext servletContext) {
-        registerServlet(servletContext, new CurrencyServlet(), PropertiesUtil.CURRENCY_SERVICE_URL);
-        registerServlet(servletContext, new CurrenciesServlet(), PropertiesUtil.CURRENCIES_SERVICE_URL);
-        registerServlet(servletContext, new ConversionRateServlet(), PropertiesUtil.CONVERSION_RATE_SERVICE_URL);
-        registerServlet(servletContext, new ConversionRatesServlet(), PropertiesUtil.CONVERSION_RATES_SERVICE_URL);
-        registerServlet(servletContext, new ConversionServlet(), PropertiesUtil.CONVERSION_SERVICE_URL);
-    }
-
-    private void registerServlet(ServletContext servletContext, HttpServlet servlet, String urlPattern) {
-        var attributeName = RequestAttributeUtil.getName(servlet.getClass());
-        ServletRegistration.Dynamic registration = servletContext.addServlet(attributeName, servlet);
-        registration.addMapping(urlPattern);
+    private void registerServlets(ServletContextEvent event) {
+        DependencyInjector.registerServlet(event, CurrencyServlet.class, PropertiesUtil.CURRENCY_SERVICE_URL);
+        DependencyInjector.registerServlet(event, CurrenciesServlet.class, PropertiesUtil.CURRENCIES_SERVICE_URL);
+        DependencyInjector.registerServlet(event, ConversionRateServlet.class, PropertiesUtil.CONVERSION_RATE_SERVICE_URL);
+        DependencyInjector.registerServlet(event, ConversionRatesServlet.class, PropertiesUtil.CONVERSION_RATES_SERVICE_URL);
+        DependencyInjector.registerServlet(event, ConversionServlet.class, PropertiesUtil.CONVERSION_SERVICE_URL);
     }
 }
