@@ -9,8 +9,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -21,10 +19,10 @@ public class JsonResponseFilter extends AbstractBaseFilter {
     private ObjectMapper objectMapper;
 
     @Override
-    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
+    public void doFilter(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
             throws IOException, ServletException {
         chain.doFilter(req, resp);
-        processResponse((HttpServletRequest) req, ((HttpServletResponse) resp));
+        processResponse(req, resp);
     }
 
     private void processResponse(HttpServletRequest req, HttpServletResponse resp) {

@@ -8,8 +8,6 @@ import com.aleos.util.PropertiesUtil;
 import com.aleos.util.RequestAttributeUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -25,28 +23,26 @@ public class CachingFilter extends AbstractBaseFilter {
     private CacheService cacheService;
 
     @Override
-    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
+    public void doFilter(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
             throws IOException, ServletException {
-        var httpReq = (HttpServletRequest) req;
 
-        if (isInvalidatingMethod(httpReq)) {
+        if (isInvalidatingMethod(req)) {
             // Invalidate the cache before processing the request
-            clearInvalidatingCache(httpReq);
+            clearInvalidatingCache(req);
 
             chain.doFilter(req, resp);
             return;
         }
-        if (isCacheableMethod(httpReq) && !httpReq.getRequestURI().contains(PropertiesUtil.CONVERSION_SERVICE_URL)) {
-            var cacheKey = getKey(httpReq);
-            var httpResp = ((HttpServletResponse) resp);
-           
+        if (isCacheableMethod(req) && !req.getRequestURI().contains(PropertiesUtil.CONVERSION_SERVICE_URL)) {
+            var cacheKey = getKey(req);
+
             if (cacheService.contains(cacheKey)) {
-                prepareResponseFromCache(httpReq, httpResp, cacheKey);
+                prepareResponseFromCache(req, resp, cacheKey);
                 return;
             }
 
             chain.doFilter(req, resp);
-            putResponseObjectToCache(httpReq, httpResp, cacheKey);
+            putResponseObjectToCache(req, resp, cacheKey);
         } else {
             chain.doFilter(req, resp);
         }

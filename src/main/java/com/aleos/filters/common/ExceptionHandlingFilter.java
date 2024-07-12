@@ -9,8 +9,7 @@ import com.aleos.filters.AbstractBaseFilter;
 import com.aleos.models.dtos.out.Error;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
@@ -24,20 +23,18 @@ public class ExceptionHandlingFilter extends AbstractBaseFilter {
     private static final Logger logger = Logger.getLogger(ExceptionHandlingFilter.class.getName());
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException {
-        var httpResponse = ((HttpServletResponse) response);
+    public void doFilter(HttpServletRequest req, HttpServletResponse resp, FilterChain chain) throws IOException {
         try {
-            chain.doFilter(request, response);
-
+            chain.doFilter(req, resp);
         } catch (RequestBodyParsingException
                  | NumberFormatException
                  | PayloadNotFoundException e) {
-            handleException(httpResponse, e);
-            httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            handleException(resp, e);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
         } catch (UniqueConstraintViolationException e) {
-            handleException(httpResponse, e);
-            httpResponse.setStatus(HttpServletResponse.SC_CONFLICT);
+            handleException(resp, e);
+            resp.setStatus(HttpServletResponse.SC_CONFLICT);
 
         } catch (HttpResponseWritingException
                  | WrappedJsonProcessingException
@@ -45,12 +42,12 @@ public class ExceptionHandlingFilter extends AbstractBaseFilter {
                  | PayloadCastException
                  | ContextInitializationException
                  | UnknownParameterTypeException e) {
-            handleException(httpResponse, e);
-            httpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            handleException(resp, e);
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 
         } catch (Exception e) {
-            handleException(httpResponse, new RuntimeException("Unexpected server error", e));
-            httpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            handleException(resp, new RuntimeException("Unexpected server error", e));
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 

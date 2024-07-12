@@ -6,8 +6,6 @@ import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validators.ValidationResult;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -21,19 +19,17 @@ public abstract class AbstractUrlFilter extends AbstractBaseFilter {
     protected abstract ValidationResult<Error> validatePayload(HttpServletRequest req, HttpServletResponse resp);
 
     @Override
-    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
+    public void doFilter(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
             throws IOException, ServletException {
 
-        var httpReq = (HttpServletRequest) req;
-        var httpResp = (HttpServletResponse) resp;
 
-        initializePayload(httpReq, httpResp);
+        initializePayload(req, resp);
 
-        ValidationResult<Error> validationResult = validatePayload(httpReq, httpResp);
+        ValidationResult<Error> validationResult = validatePayload(req, resp);
 
         if (validationResult.hasErrors()) {
-            RequestAttributeUtil.setResponse(httpReq, validationResult.getErrors());
-            httpResp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            RequestAttributeUtil.setResponse(req, validationResult.getErrors());
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 

@@ -1,18 +1,18 @@
 package com.aleos.filters;
 
 import com.aleos.util.DependencyInjector;
-import jakarta.servlet.Filter;
 import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpFilter;
 import jakarta.servlet.http.HttpServletRequest;
 
 import static com.aleos.servlets.common.HttpMethod.*;
 
-public abstract class AbstractBaseFilter implements Filter {
+public abstract class AbstractBaseFilter extends HttpFilter {
 
     @Override
     public void init(FilterConfig config) throws ServletException {
-        Filter.super.init(config);
+        super.init(config);
         DependencyInjector.inject(config.getServletContext(), this);
     }
 
