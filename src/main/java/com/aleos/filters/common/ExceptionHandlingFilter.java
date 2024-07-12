@@ -2,31 +2,26 @@ package com.aleos.filters.common;
 
 import com.aleos.exceptions.PayloadCastException;
 import com.aleos.exceptions.UnknownParameterTypeException;
+import com.aleos.exceptions.daos.DaoOperationException;
 import com.aleos.exceptions.daos.UniqueConstraintViolationException;
 import com.aleos.exceptions.servlets.*;
-import com.aleos.exceptions.daos.DaoOperationException;
+import com.aleos.filters.AbstractBaseFilter;
 import com.aleos.models.dtos.out.Error;
-import com.aleos.util.AttributeNameUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.*;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ExceptionHandlingFilter implements Filter {
+public class ExceptionHandlingFilter extends AbstractBaseFilter {
 
     private ObjectMapper objectMapper;
 
     private static final Logger logger = Logger.getLogger(ExceptionHandlingFilter.class.getName());
-
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-        Filter.super.init(filterConfig);
-        objectMapper = (ObjectMapper) filterConfig.getServletContext()
-                .getAttribute(AttributeNameUtil.getName(ObjectMapper.class));
-    }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException {
