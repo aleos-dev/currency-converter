@@ -2,7 +2,7 @@ package com.aleos.filters.url;
 
 import com.aleos.models.dtos.in.ConversionPayload;
 import com.aleos.models.dtos.out.Error;
-import com.aleos.util.AttributeNameUtil;
+import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validators.ConversionRateValidator;
 import com.aleos.validators.ValidationResult;
 import jakarta.servlet.http.HttpServletRequest;
@@ -60,11 +60,12 @@ class ConversionUrlFilterTest {
         doReturn(FROM).when(request).getParameter("from");
         doReturn(TO).when(request).getParameter("to");
         doReturn(AMOUNT).when(request).getParameter("amount");
+        doReturn("GET").when(request).getMethod();
 
         conversionUrlFilter.initializePayload(request, response);
 
         var payloadCaptor = ArgumentCaptor.forClass(ConversionPayload.class);
-        verify(request).setAttribute(eq(AttributeNameUtil.PAYLOAD_MODEL_ATTR), payloadCaptor.capture());
+        verify(request).setAttribute(eq(RequestAttributeUtil.PAYLOAD_MODEL), payloadCaptor.capture());
         var payload = payloadCaptor.getValue();
         assertEquals(FROM, payload.baseCurrencyCode());
         assertEquals(TO, payload.targetCurrencyCode());
@@ -85,14 +86,13 @@ class ConversionUrlFilterTest {
     void validatePayload_shouldReturnEmptyList_WhenRequestIsGetTypeAndValid() {
         final ConversionPayload payload = new ConversionPayload(FROM, TO, Double.parseDouble(AMOUNT));
         final var identifier = FROM + TO;
-        var spy = spy(conversionUrlFilter);
         doReturn(METHOD_GET).when(request).getMethod();
-        doReturn(payload).when(spy).getPayloadAttribute(ConversionPayload.class, request);
         doReturn(Optional.empty()).when(validator).validateIdentifier(identifier);
+        doReturn(payload).when(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
 
-        ValidationResult<Error> validationResult = spy.validatePayload(request, response);
+        ValidationResult<Error> validationResult = conversionUrlFilter.validatePayload(request, response);
 
-        verify(spy, times(1)).getPayloadAttribute(ConversionPayload.class, request);
+        verify(request, times(1)).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         verify(validator, times(1)).validateIdentifier(identifier);
         assertTrue(validationResult.isValid());
     }
@@ -104,12 +104,12 @@ class ConversionUrlFilterTest {
         final var message = "Invalid currency code.";
         final var errorResponse = Error.of(message);
         doReturn(METHOD_GET).when(request).getMethod();
-        doReturn(payload).when(request).getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
         doReturn(Optional.of(errorResponse)).when(validator).validateIdentifier(identifier);
+        doReturn(payload).when(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
 
         ValidationResult<Error> validationResult = conversionUrlFilter.validatePayload(request, response);
 
-        verify(request, times(1)).getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
+        verify(request, times(1)).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         verify(validator, times(1)).validateIdentifier(identifier);
         assertEquals(message, validationResult.getErrors().get(0).getMessage());
     }

@@ -1,7 +1,7 @@
 package com.aleos.filters.common;
 
-import com.aleos.util.AttributeNameUtil;
 import com.aleos.util.PropertiesUtil;
+import com.aleos.util.RequestAttributeUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -55,7 +55,7 @@ class JsonResponseFilterTest {
         final var stub = new Object();
         final var json = "{}";
         final var printWriter = mock(PrintWriter.class);
-        doReturn(stub).when(request).getAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR);
+        doReturn(stub).when(request).getAttribute(RequestAttributeUtil.RESPONSE_MODEL);
         doReturn(json).when(objectMapper).writeValueAsString(stub);
         doReturn(printWriter).when(response).getWriter();
 
@@ -68,7 +68,7 @@ class JsonResponseFilterTest {
 
     @Test
     void doFilter_DoNothing_IfResponseObjectIsNotPresent() throws ServletException, IOException {
-        doReturn(null).when(request).getAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR);
+        doReturn(null).when(request).getAttribute(RequestAttributeUtil.RESPONSE_MODEL);
 
         jsonResponseFilter.doFilter(request, response, chain);
 

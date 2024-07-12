@@ -3,7 +3,7 @@ package com.aleos.filters.url;
 import com.aleos.models.dtos.in.ConversionRateIdentifierPayload;
 import com.aleos.models.dtos.in.ConversionRatePayload;
 import com.aleos.models.dtos.out.Error;
-import com.aleos.util.AttributeNameUtil;
+import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validators.ConversionRateValidator;
 import com.aleos.validators.ValidationResult;
 import jakarta.servlet.http.HttpServletRequest;
@@ -69,7 +69,7 @@ class ConversionRateUrlFilterTest {
         filter.initializePayload(request, response);
 
         var captor = ArgumentCaptor.forClass(ConversionRateIdentifierPayload.class);
-        verify(request).setAttribute(eq(AttributeNameUtil.PAYLOAD_MODEL_ATTR), captor.capture());
+        verify(request).setAttribute(eq(RequestAttributeUtil.PAYLOAD_MODEL), captor.capture());
         assertEquals(getValidIdentifier().identifier(), captor.getValue().identifier());
     }
 
@@ -85,7 +85,7 @@ class ConversionRateUrlFilterTest {
         filter.initializePayload(request, response);
 
         var captor = ArgumentCaptor.forClass(ConversionRatePayload.class);
-        verify(request).setAttribute(eq(AttributeNameUtil.PAYLOAD_MODEL_ATTR), captor.capture());
+        verify(request).setAttribute(eq(RequestAttributeUtil.PAYLOAD_MODEL), captor.capture());
         assertEquals(payload, captor.getValue());
     }
 
@@ -103,12 +103,12 @@ class ConversionRateUrlFilterTest {
     void validatePayload_ShouldReturnNoErrors_WhenGetValidRequest() {
         final var payload = getValidIdentifier();
         doReturn(GET.toString()).when(request).getMethod();
-        doReturn(payload).when(request).getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
+        doReturn(payload).when(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         doReturn(Optional.empty()).when(validator).validateIdentifier(payload.identifier());
 
         var validationResult = filter.validatePayload(request, response);
 
-        verify(request).getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
+        verify(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         verify(validator).validateIdentifier(payload.identifier());
         assertTrue(validationResult.isValid());
     }
@@ -117,7 +117,7 @@ class ConversionRateUrlFilterTest {
     void validatePayload_ShouldReturnErrors_WhenGetInvalidRequest() {
         var payload = getInvalidIdentifier();
         doReturn(GET.toString()).when(request).getMethod();
-        doReturn(payload).when(request).getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
+        doReturn(payload).when(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         doReturn(Optional.of(getError())).when(validator).validateIdentifier(payload.identifier());
 
         var validationResult = filter.validatePayload(request, response);
@@ -130,14 +130,12 @@ class ConversionRateUrlFilterTest {
     @Test
     void validatePayload_ShouldReturnNoErrors_WhenPatchValidRequest() {
         final var payload = getValidPayload();
-        final var spy = spy(filter);
         doReturn(PATCH.toString()).when(request).getMethod();
-        doReturn(payload).when(spy).getPayloadAttribute(ConversionRatePayload.class, request);
+        doReturn(payload).when(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         doReturn(new ValidationResult<>()).when(validator).validate(payload);
 
-        var validationResult = spy.validatePayload(request, response);
+        var validationResult = filter.validatePayload(request, response);
 
-        verify(spy).getPayloadAttribute(ConversionRatePayload.class, request);
         verify(validator).validate(payload);
         assertTrue(validationResult.isValid());
     }
@@ -145,14 +143,13 @@ class ConversionRateUrlFilterTest {
     @Test
     void validatePayload_ShouldReturnErrors_WhenPatchInvalidRequest() {
         final var expectedValidationResult = new ValidationResult<Error>();
-        expectedValidationResult.add(getError());
         final var payload = getInvalidPayloadWithBadRate();
-        final var spy = spy(filter);
+        expectedValidationResult.add(getError());
         doReturn(PATCH.toString()).when(request).getMethod();
-        doReturn(payload).when(spy).getPayloadAttribute(ConversionRatePayload.class, request);
+        doReturn(payload).when(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         doReturn(expectedValidationResult).when(validator).validate(payload);
 
-        var actualValidationResult = spy.validatePayload(request, response);
+        var actualValidationResult = filter.validatePayload(request, response);
 
         assertEquals(1, actualValidationResult.getErrors().size());
         assertEquals(actualValidationResult.getErrors().get(0), expectedValidationResult.getErrors().get(0));

@@ -1,7 +1,7 @@
 package com.aleos.filters.url;
 
 import com.aleos.models.dtos.out.Error;
-import com.aleos.util.AttributeNameUtil;
+import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validators.ValidationResult;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,7 +10,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 
@@ -68,7 +70,7 @@ class AbstractUrlFilterTest {
         spy.doFilter(request, response, chain);
 
         verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        verify(request).setAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR, validationResult.getErrors());
+        verify(request).setAttribute(RequestAttributeUtil.RESPONSE_MODEL, validationResult.getErrors());
         verify(chain, never()).doFilter(request, response);
     }
 }

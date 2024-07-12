@@ -2,7 +2,7 @@ package com.aleos.filters.url;
 
 import com.aleos.models.dtos.in.ConversionRatePayload;
 import com.aleos.models.dtos.out.Error;
-import com.aleos.util.AttributeNameUtil;
+import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validators.ConversionRateValidator;
 import com.aleos.validators.ValidationResult;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,12 +21,11 @@ import static com.aleos.servlets.common.HttpMethod.GET;
 import static com.aleos.servlets.common.HttpMethod.POST;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.internal.matchers.Any.ANY;
 
 class ConversionRatesUrlFilterTest {
 
     @InjectMocks
-    ConversionRatesUrlFilter filter;
+    ConversionRatesUrlFilter conversionRatesUrlFilter;
 
     @Mock
     HttpServletRequest request;
@@ -53,35 +52,33 @@ class ConversionRatesUrlFilterTest {
 
     @Test
     void initializePayload_ShouldSetPayload_WhenPostRequest() {
-        final var spy = spy(filter);
         final var payload = getValidPayload();
         doReturn(payload.baseCurrencyCode()).when(request).getParameter("baseCurrencyCode");
         doReturn(payload.targetCurrencyCode()).when(request).getParameter("targetCurrencyCode");
         doReturn(payload.rate().toString()).when(request).getParameter("rate");
         doReturn(POST.toString()).when(request).getMethod();
 
-        spy.initializePayload(request, response);
+        conversionRatesUrlFilter.initializePayload(request, response);
 
         var captor = ArgumentCaptor.forClass(ConversionRatePayload.class);
-        verify(spy).setPayloadAttribute(captor.capture(), eq(request));
-        verify(request, times(1)).setAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR, payload);
+        verify(request).setAttribute(eq(RequestAttributeUtil.PAYLOAD_MODEL), captor.capture());
         assertEquals(payload, captor.getValue());
     }
 
     @Test
     void initializePayload_ShouldDoNothing_WhenNotPostRequest() {
-        final var spy = spy(filter);
         doReturn(GET.toString()).when(request).getMethod();
 
-        spy.initializePayload(request, response);
+        conversionRatesUrlFilter.initializePayload(request, response);
 
-        verify(spy, never()).setPayloadAttribute(ANY, request);
+        verify(request).getMethod();
+        verify(request, never()).getParameter(anyString());
     }
 
     @Test
     void initializePayload_shouldThrowNumberFormatException_WhenRateCantBeParsed() {
         final String invalidRate = "invalid_rate";
-        final var spy = spy(filter);
+        final var spy = spy(conversionRatesUrlFilter);
         doReturn(POST.toString()).when(request).getMethod();
         doReturn(invalidRate).when(request).getParameter("rate");
 
@@ -91,15 +88,14 @@ class ConversionRatesUrlFilterTest {
     @Test
     void validatePayload_ShouldReturnNoErrors_WhenPayloadIsValid() {
         final var payload = getValidPayload();
-        final var spy = spy(filter);
         final var validationResult = new ValidationResult<Error>();
         doReturn(POST.toString()).when(request).getMethod();
-        doReturn(payload).when(spy).getPayloadAttribute(ConversionRatePayload.class, request);
+        doReturn(payload).when(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         doReturn(validationResult).when(validator).validate(payload);
 
-        var actualValidationResult = spy.validatePayload(request, response);
+        var actualValidationResult = conversionRatesUrlFilter.validatePayload(request, response);
 
-        verify(spy).getPayloadAttribute(ConversionRatePayload.class, request);
+        verify(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         verify(validator).validate(payload);
         assertTrue(actualValidationResult.isValid());
     }
@@ -108,19 +104,19 @@ class ConversionRatesUrlFilterTest {
     void validatePayload_ShouldReturnErrors_WhenPayloadHasNullField() {
         final var expectedValidationResult = new ValidationResult<Error>();
         final var payload = getInvalidPayloadWithNullField();
-        final var spy = spy(filter);
         expectedValidationResult.add(Error.of("Test error"));
-        doReturn(POST.toString()).when(request).getMethod();
-        doReturn(payload).when(spy).getPayloadAttribute(ConversionRatePayload.class, request);
+        doReturn("POST").when(request).getMethod();
+        doReturn(payload).when(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         doReturn(expectedValidationResult).when(validator).validate(payload);
 
-        var actualValidationResult = spy.validatePayload(request, response);
+        var actualValidationResult = conversionRatesUrlFilter.validatePayload(request, response);
 
-        verify(spy).getPayloadAttribute(ConversionRatePayload.class, request);
+        verify(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         verify(validator).validate(payload);
         assertEquals(1, actualValidationResult.getErrors().size());
         assertEquals(actualValidationResult.getErrors().get(0), expectedValidationResult.getErrors().get(0));
     }
+
 
     private ConversionRatePayload getValidPayload() {
         String from = "USD";

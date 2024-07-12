@@ -1,8 +1,8 @@
 package com.aleos.filters.common;
 
 import com.aleos.services.CacheService;
-import com.aleos.util.AttributeNameUtil;
 import com.aleos.util.PropertiesUtil;
+import com.aleos.util.RequestAttributeUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -75,7 +75,7 @@ class CachingFilterTest {
 
         cachingFilter.doFilter(request, response, chain);
 
-        verify(request).setAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR, "cached-content");
+        verify(request).setAttribute(RequestAttributeUtil.RESPONSE_MODEL, "cached-content");
         verify(response).setStatus(200);
         verify(chain, never()).doFilter(request, response);
     }
@@ -86,12 +86,12 @@ class CachingFilterTest {
         final int status = 201;
         setupRequest("GET", resourceUri);
         doReturn(false).when(cacheService).contains(resourceUri);
-        doReturn(stub).when(request).getAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR);
+        doReturn(stub).when(request).getAttribute(RequestAttributeUtil.RESPONSE_MODEL);
         doReturn(status).when(response).getStatus();
 
         cachingFilter.doFilter(request, response, chain);
 
-        verify(request).getAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR);
+        verify(request).getAttribute(RequestAttributeUtil.RESPONSE_MODEL);
         ArgumentCaptor<CacheService.CacheEntry> captor = ArgumentCaptor.forClass(CacheService.CacheEntry.class);
         verify(cacheService).put(eq(resourceUri), captor.capture());
         assertEquals(status, captor.getValue().status());
