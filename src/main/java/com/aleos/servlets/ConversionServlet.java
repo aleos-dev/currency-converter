@@ -4,6 +4,7 @@ import com.aleos.models.dtos.in.ConversionPayload;
 import com.aleos.models.dtos.out.ConversionResponse;
 import com.aleos.models.dtos.out.Error;
 import com.aleos.services.ConversionService;
+import com.aleos.util.RequestAttributeUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -17,12 +18,14 @@ public class ConversionServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-        Optional<ConversionResponse> byPayload = conversionService.convert(getPayload(req, ConversionPayload.class));
+        var payload = RequestAttributeUtil.getPayload(req, ConversionPayload.class);
+
+        Optional<ConversionResponse> byPayload = conversionService.convert(payload);
 
         byPayload.ifPresentOrElse(
-                responseModel -> setResponseModel(req, responseModel),
+                responseModel -> RequestAttributeUtil.setResponse(req, responseModel),
                 () -> {
-                    setResponseModel(req, Error.of("Conversion is not possible."));
+                    RequestAttributeUtil.setResponse(req, Error.of("Conversion is not possible."));
                     resp.setStatus(SC_NOT_FOUND);
                 }
         );

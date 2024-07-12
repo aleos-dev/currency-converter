@@ -3,16 +3,18 @@ package com.aleos.filters.common;
 import com.aleos.exceptions.servlets.HttpResponseWritingException;
 import com.aleos.exceptions.servlets.WrappedJsonProcessingException;
 import com.aleos.filters.AbstractBaseFilter;
-import com.aleos.util.AttributeNameUtil;
 import com.aleos.util.PropertiesUtil;
+import com.aleos.util.RequestAttributeUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.*;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.util.Optional;
 
 public class JsonResponseFilter extends AbstractBaseFilter {
 
@@ -26,9 +28,9 @@ public class JsonResponseFilter extends AbstractBaseFilter {
     }
 
     private void processResponse(HttpServletRequest req, HttpServletResponse resp) {
-            Optional.ofNullable(req.getAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR))
-                    .map(this::toJson)
-                    .ifPresent(json -> write(json, resp));
+        RequestAttributeUtil.getResponse(req)
+                .map(this::toJson)
+                .ifPresent(json -> write(json, resp));
     }
 
     private void write(String json, HttpServletResponse resp) {

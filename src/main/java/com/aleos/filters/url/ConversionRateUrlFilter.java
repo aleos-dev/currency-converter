@@ -4,6 +4,7 @@ import com.aleos.exceptions.servlets.RequestBodyParsingException;
 import com.aleos.models.dtos.in.ConversionRateIdentifierPayload;
 import com.aleos.models.dtos.in.ConversionRatePayload;
 import com.aleos.models.dtos.out.Error;
+import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validators.ConversionRateValidator;
 import com.aleos.validators.ValidationResult;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,20 +22,23 @@ public class ConversionRateUrlFilter extends AbstractUrlFilter {
 
     @Override
     protected void initializePayload(HttpServletRequest req, HttpServletResponse resp) {
-        if (isGetMethod(req)) {
-            extractConversionRateIdentifierPayload(req).ifPresent(payload -> setPayloadAttribute(payload, req));
+        if (isGet(req)) {
+            extractConversionRateIdentifierPayload(req)
+                    .ifPresent(payload -> RequestAttributeUtil.setPayload(req, payload));
 
-        } else if (isPatchMethod(req)) {
-            extractConversionRatePayload(req).ifPresent(payload -> setPayloadAttribute(payload, req));
+        } else if (isPatch(req)) {
+            extractConversionRatePayload(req)
+                    .ifPresent(payload -> RequestAttributeUtil.setPayload(req, payload));
         }
     }
 
     @Override
     protected ValidationResult<Error> validatePayload(HttpServletRequest req, HttpServletResponse resp) {
         var validationResult = new ValidationResult<Error>();
-        if (isGetMethod(req)) {
+
+        if (isGet(req)) {
             return conversionRateValidator.validateIdentifier(
-                            getPayloadAttribute(ConversionRateIdentifierPayload.class, req).identifier())
+                            RequestAttributeUtil.getPayload(req, ConversionRateIdentifierPayload.class).identifier())
                     .map(error -> {
                         validationResult.add(error);
                         return validationResult;
@@ -42,8 +46,8 @@ public class ConversionRateUrlFilter extends AbstractUrlFilter {
                     .orElse(validationResult);
         }
 
-        return isPatchMethod(req)
-                ? conversionRateValidator.validate(getPayloadAttribute(ConversionRatePayload.class, req))
+        return isPatch(req)
+                ? conversionRateValidator.validate(RequestAttributeUtil.getPayload(req, ConversionRatePayload.class))
                 : validationResult;
     }
 

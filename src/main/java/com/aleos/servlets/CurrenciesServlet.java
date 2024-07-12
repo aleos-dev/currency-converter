@@ -3,6 +3,7 @@ package com.aleos.servlets;
 import com.aleos.models.dtos.in.CurrencyPayload;
 import com.aleos.models.dtos.out.CurrencyResponse;
 import com.aleos.services.CurrencyService;
+import com.aleos.util.RequestAttributeUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,14 +15,16 @@ public class CurrenciesServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-        setResponseModel(req, currencyService.findAll());
+        RequestAttributeUtil.setResponse(req, currencyService.findAll());
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
-        CurrencyResponse responseModel = currencyService.save(getPayload(req, CurrencyPayload.class));
+        var payload = RequestAttributeUtil.getPayload(req, CurrencyPayload.class);
 
-        setResponseModel(req, responseModel);
+        CurrencyResponse responseModel = currencyService.save(payload);
+
+        RequestAttributeUtil.setResponse(req, responseModel);
         resp.setStatus(HttpServletResponse.SC_CREATED);
     }
 }

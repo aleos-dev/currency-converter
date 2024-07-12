@@ -2,6 +2,7 @@ package com.aleos.filters.url;
 
 import com.aleos.models.dtos.in.ConversionRatePayload;
 import com.aleos.models.dtos.out.Error;
+import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validators.ConversionRateValidator;
 import com.aleos.validators.ValidationResult;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,15 +16,15 @@ public class ConversionRatesUrlFilter extends AbstractUrlFilter {
 
     @Override
     protected void initializePayload(HttpServletRequest req, HttpServletResponse resp) {
-        if (isPostMethod(req)) {
-            setPayloadAttribute(extractConversionRatePayload(req), req);
+        if (isPost(req)) {
+            RequestAttributeUtil.setPayload(req, extractConversionRatePayload(req));
         }
     }
 
     @Override
     protected ValidationResult<Error> validatePayload(HttpServletRequest req, HttpServletResponse resp) {
-        return isPostMethod(req)
-                ? conversionRateValidator.validate(getPayloadAttribute(ConversionRatePayload.class, req))
+        return isPost(req)
+                ? conversionRateValidator.validate(RequestAttributeUtil.getPayload(req, ConversionRatePayload.class))
                 : new ValidationResult<>();
     }
 

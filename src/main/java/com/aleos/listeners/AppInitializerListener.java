@@ -10,9 +10,9 @@ import com.aleos.services.ConversionRateService;
 import com.aleos.services.ConversionService;
 import com.aleos.services.CurrencyService;
 import com.aleos.servlets.*;
-import com.aleos.util.AttributeNameUtil;
 import com.aleos.util.DbUtil;
 import com.aleos.util.PropertiesUtil;
+import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validators.ConversionRateValidator;
 import com.aleos.validators.CurrencyValidator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,7 +57,7 @@ public class AppInitializerListener implements ServletContextListener {
 
         for (var clazz : initializerSet) {
             var instance = initializeClass(clazz, sce);
-            var attributeName = AttributeNameUtil.getName(clazz);
+            var attributeName = RequestAttributeUtil.getName(clazz);
             sce.getServletContext().setAttribute(attributeName, instance);
         }
 
@@ -75,7 +75,7 @@ public class AppInitializerListener implements ServletContextListener {
                 } else {
                     Object[] parameters = new Object[parameterTypes.length];
                     for (int i = 0; i < parameterTypes.length; i++) {
-                        String attributeName = AttributeNameUtil.getName(parameterTypes[i]);
+                        String attributeName = RequestAttributeUtil.getName(parameterTypes[i]);
                         parameters[i] = sce.getServletContext().getAttribute(attributeName);
                     }
                     return constructor.newInstance(parameters);
@@ -94,7 +94,7 @@ public class AppInitializerListener implements ServletContextListener {
 
         // Initialize DataSource separately using the utility class
         DataSource dataSource = DbUtil.getDataSource();
-        String attributeName = AttributeNameUtil.getName(DataSource.class);
+        String attributeName = RequestAttributeUtil.getName(DataSource.class);
         sce.getServletContext().setAttribute(attributeName, dataSource);
     }
 
@@ -102,25 +102,21 @@ public class AppInitializerListener implements ServletContextListener {
 
         // Initialize ObjectMapper separately due to complex initialization requirements
         ObjectMapper objectMapper = new ObjectMapper();
-        String attributeName = AttributeNameUtil.getName(ObjectMapper.class);
+        String attributeName = RequestAttributeUtil.getName(ObjectMapper.class);
         sce.getServletContext().setAttribute(attributeName, objectMapper);
     }
 
     private void registerServlets(ServletContext servletContext) {
-        registerServlet(servletContext, AttributeNameUtil.getName(CurrencyServlet.class),
-                new CurrencyServlet(), PropertiesUtil.CURRENCY_SERVICE_URL);
-        registerServlet(servletContext, AttributeNameUtil.getName(CurrenciesServlet.class),
-                new CurrenciesServlet(), PropertiesUtil.CURRENCIES_SERVICE_URL);
-        registerServlet(servletContext, AttributeNameUtil.getName(ConversionRateServlet.class),
-                new ConversionRateServlet(), PropertiesUtil.CONVERSION_RATE_SERVICE_URL);
-        registerServlet(servletContext, AttributeNameUtil.getName(ConversionRatesServlet.class),
-                new ConversionRatesServlet(), PropertiesUtil.CONVERSION_RATES_SERVICE_URL);
-        registerServlet(servletContext, AttributeNameUtil.getName(ConversionServlet.class),
-                new ConversionServlet(), PropertiesUtil.CONVERSION_SERVICE_URL);
+        registerServlet(servletContext, new CurrencyServlet(), PropertiesUtil.CURRENCY_SERVICE_URL);
+        registerServlet(servletContext, new CurrenciesServlet(), PropertiesUtil.CURRENCIES_SERVICE_URL);
+        registerServlet(servletContext, new ConversionRateServlet(), PropertiesUtil.CONVERSION_RATE_SERVICE_URL);
+        registerServlet(servletContext, new ConversionRatesServlet(), PropertiesUtil.CONVERSION_RATES_SERVICE_URL);
+        registerServlet(servletContext, new ConversionServlet(), PropertiesUtil.CONVERSION_SERVICE_URL);
     }
 
-    private void registerServlet(ServletContext servletContext, String name, HttpServlet servlet, String urlPattern) {
-        ServletRegistration.Dynamic registration = servletContext.addServlet(name, servlet);
+    private void registerServlet(ServletContext servletContext, HttpServlet servlet, String urlPattern) {
+        var attributeName = RequestAttributeUtil.getName(servlet.getClass());
+        ServletRegistration.Dynamic registration = servletContext.addServlet(attributeName, servlet);
         registration.addMapping(urlPattern);
     }
 }

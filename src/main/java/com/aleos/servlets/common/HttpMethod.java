@@ -8,5 +8,9 @@ public enum HttpMethod {
     PATCH,
     HEAD,
     OPTIONS,
-    TRACE
+    TRACE;
+
+    public boolean isMatches(String method) {
+        return this.name().equalsIgnoreCase(method);
+    }
 }

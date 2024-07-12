@@ -3,6 +3,7 @@ package com.aleos.servlets;
 import com.aleos.models.dtos.in.CurrencyIdentifierPayload;
 import com.aleos.models.dtos.out.CurrencyResponse;
 import com.aleos.services.CurrencyService;
+import com.aleos.util.RequestAttributeUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -16,14 +17,15 @@ public class CurrencyServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-        var payload = getPayload(req, CurrencyIdentifierPayload.class);
+        var payload = RequestAttributeUtil.getPayload(req, CurrencyIdentifierPayload.class);
 
         Optional<CurrencyResponse> byPayload = currencyService.findByIdentifier(payload);
 
         byPayload.ifPresentOrElse(
-                responseModel -> setResponseModel(req, responseModel),
+                responseModel -> RequestAttributeUtil.setResponse(req, responseModel),
                 () -> {
-                    setResponseModel(req, "Currency with identifier: %s not found.".formatted(payload.identifier()));
+                    RequestAttributeUtil
+                            .setResponse(req, "Currency with identifier: %s not found".formatted(payload.identifier()));
                     resp.setStatus(SC_NOT_FOUND);
                 }
         );

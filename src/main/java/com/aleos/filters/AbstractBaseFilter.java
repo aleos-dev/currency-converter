@@ -16,15 +16,15 @@ public abstract class AbstractBaseFilter implements Filter {
         DependencyInjector.inject(this, config.getServletContext());
     }
 
-    protected boolean isGetMethod(HttpServletRequest req) {
-        return req.getMethod().equalsIgnoreCase(GET.toString());
+    protected boolean isGet(HttpServletRequest req) {
+        return GET.isMatches(req.getMethod());
     }
 
-    protected boolean isPostMethod(HttpServletRequest req) {
-        return req.getMethod().equalsIgnoreCase(POST.toString());
+    protected boolean isPost(HttpServletRequest req) {
+        return POST.isMatches(req.getMethod());
     }
 
-    protected boolean isPatchMethod(HttpServletRequest req) {
-        return req.getMethod().equalsIgnoreCase(PATCH.toString());
+    protected boolean isPatch(HttpServletRequest req) {
+        return PATCH.isMatches(req.getMethod());
     }
 }

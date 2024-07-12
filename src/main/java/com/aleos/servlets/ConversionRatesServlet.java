@@ -2,7 +2,7 @@ package com.aleos.servlets;
 
 import com.aleos.models.dtos.in.ConversionRatePayload;
 import com.aleos.services.ConversionRateService;
-import com.aleos.util.AttributeNameUtil;
+import com.aleos.util.RequestAttributeUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -16,13 +16,16 @@ public class ConversionRatesServlet extends BaseServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-        req.setAttribute(AttributeNameUtil.RESPONSE_MODEL_ATTR, conversionRateService.findAll());
+        RequestAttributeUtil.setResponse(req, conversionRateService.findAll());
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
-        var conversionRateResponse = conversionRateService.save(getPayload(req, ConversionRatePayload.class));
-        setResponseModel(req, conversionRateResponse);
+        var payload = RequestAttributeUtil.getPayload(req, ConversionRatePayload.class);
+
+        var conversionRateResponse = conversionRateService.save(payload);
+
+        RequestAttributeUtil.setResponse(req, conversionRateResponse);
         resp.setStatus(SC_CREATED);
     }
 }

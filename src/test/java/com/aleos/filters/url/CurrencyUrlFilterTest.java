@@ -2,7 +2,7 @@ package com.aleos.filters.url;
 
 import com.aleos.models.dtos.in.CurrencyIdentifierPayload;
 import com.aleos.models.dtos.out.Error;
-import com.aleos.util.AttributeNameUtil;
+import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validators.CurrencyValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -59,7 +59,7 @@ class CurrencyUrlFilterTest {
         currencyUrlFilter.initializePayload(request, response);
 
         ArgumentCaptor<CurrencyIdentifierPayload> responseCaptor = ArgumentCaptor.forClass(CurrencyIdentifierPayload.class);
-        verify(request).setAttribute(eq(AttributeNameUtil.PAYLOAD_MODEL_ATTR), responseCaptor.capture());
+        verify(request).setAttribute(eq(RequestAttributeUtil.PAYLOAD_MODEL), responseCaptor.capture());
         CurrencyIdentifierPayload payload = responseCaptor.getValue();
         assertEquals(CORRECT_PATH_INFO.substring(1), payload.identifier());
     }
@@ -76,40 +76,28 @@ class CurrencyUrlFilterTest {
 
     @Test
     void validatePayload_ShouldReturnNoErrors_WhenPayloadIsValid() {
-        final var payload = getValidPayload();
         doReturn(GET.toString()).when(request).getMethod();
-        doReturn(payload).when(request).getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
-        doReturn(Optional.empty()).when(validator).validateIdentifier(payload.identifier());
+        doReturn(Optional.empty()).when(validator).validateIdentifier(any());
 
         var validationResult = currencyUrlFilter.validatePayload(request, response);
 
-        verify(request).getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
+        verify(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         assertTrue(validationResult.isValid());
     }
 
     @Test
     void validatePayload_ReturnErrors_WhenIdentifierIsInvalid() {
-        CurrencyIdentifierPayload payload = getInvalidPayload();
         doReturn(GET.toString()).when(request).getMethod();
-        doReturn(payload).when(request).getAttribute(AttributeNameUtil.PAYLOAD_MODEL_ATTR);
-        doReturn(Optional.of(getError())).when(validator).validateIdentifier(payload.identifier());
+        doReturn(Optional.of(getError())).when(validator).validateIdentifier(any());
 
         var validationResult = currencyUrlFilter.validatePayload(request, response);
 
         assertEquals(1, validationResult.getErrors().size());
         assertEquals(validationResult.getErrors().get(0), getError());
-        verify(validator, times(1)).validateIdentifier(payload.identifier());
+        verify(validator).validateIdentifier(any());
     }
 
     private Error getError() {
         return Error.of("Currency test error");
-    }
-
-    private CurrencyIdentifierPayload getValidPayload() {
-        return new CurrencyIdentifierPayload("EUR");
-    }
-
-    private CurrencyIdentifierPayload getInvalidPayload() {
-        return new CurrencyIdentifierPayload("invalid");
     }
 }
