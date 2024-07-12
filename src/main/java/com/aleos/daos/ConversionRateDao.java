@@ -1,6 +1,7 @@
 package com.aleos.daos;
 
 import com.aleos.exceptions.daos.DaoOperationException;
+import com.aleos.exceptions.daos.UniqueConstraintViolationException;
 import com.aleos.models.entities.ConversionRate;
 import com.aleos.models.entities.Currency;
 import lombok.NonNull;
@@ -152,8 +153,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
             return conversionRate;
 
         } catch (SQLException e) {
-            rollback(e, connection);
-            throw new DaoOperationException("Transaction failed and was rolled back.", e);
+            throw rollbackAndGetException(e, connection);
         } finally {
             closeConnection(connection);
         }
@@ -181,7 +181,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
              var statement = connection.prepareStatement(UPDATE_RATE_BY_CURRENCY_CODES_SQL)
         ) {
 
-            setPreparedStatementParameters(statement, baseCurrencyCode, targetCurrencyCode, rate);
+            setPreparedStatementParameters(statement, rate, baseCurrencyCode, targetCurrencyCode);
             int rowsAffected = statement.executeUpdate();
 
             return rowsAffected > 0;
@@ -265,7 +265,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
                         rs.getInt("cr_target_id"),
                         rs.getString("target_fullname"),
                         rs.getString("target_code"),
-                        "target_sign"
+                        rs.getString("target_sign")
                 ),
                 rs.getBigDecimal("cr_rate")
         );
@@ -331,14 +331,19 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
         }
     }
 
-    private void rollback(SQLException originalEx, Connection connection) {
+    private DaoOperationException rollbackAndGetException(SQLException originalEx, Connection connection) {
+        DaoOperationException exceptionToReturn = isUniqueConstraintException(originalEx)
+                ? new UniqueConstraintViolationException("Not saved due to a unique constraint violation.", originalEx)
+                : new DaoOperationException("Transaction failed and was rolled back.", originalEx);
         try {
             if (connection != null) {
                 connection.rollback();
             }
+            return exceptionToReturn;
+
         } catch (SQLException rollbackEx) {
-            originalEx.addSuppressed(rollbackEx);
-            throw new DaoOperationException("Unknown database error, rollback is failed", originalEx);
+            rollbackEx.addSuppressed(exceptionToReturn);
+            throw new DaoOperationException("Unknown database error, rollback failed", rollbackEx);
         }
     }
 }

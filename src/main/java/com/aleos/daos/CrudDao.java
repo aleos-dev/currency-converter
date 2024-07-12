@@ -30,7 +30,7 @@ public abstract class CrudDao<E extends Entity<K>, K> {
             save(entity, connection);
 
         } catch (SQLException e) {
-            if (e.getMessage().contains("SQLITE_CONSTRAINT_UNIQUE")) {
+            if (isUniqueConstraintException(e)) {
                 throw new UniqueConstraintViolationException("Can't be saved due to a unique constraint violation.", e);
             }
             throw new DaoOperationException(e.getMessage(), e);
@@ -143,6 +143,10 @@ public abstract class CrudDao<E extends Entity<K>, K> {
                 throw new UnknownParameterTypeException("Need add handler for new parameter type: " + param.getClass());
             }
         }
+    }
+
+    protected boolean isUniqueConstraintException(SQLException e) {
+        return e.getMessage().contains("SQLITE_CONSTRAINT_UNIQUE");
     }
 
     protected abstract PreparedStatement createSaveStatement(E entity, Connection connection) throws SQLException;
