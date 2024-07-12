@@ -64,7 +64,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
 
     private static final String DELETE_BY_ID_SQL = "DELETE FROM conversion_rates WHERE id = ?;";
 
-    private static final String SELECT_CROSS_RATE_BY_CODE = """
+    private static final String SELECT_CROSS_RATE_BY_CODES = """
             WITH
             indirect_rates AS (
                 -- c -> a & c -> b
@@ -110,7 +110,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
                 SELECT
                     f.code AS base_code,
                     t.code AS target_code,
-                    (cr1.rate * cr2.rate) AS cr_rate
+                    (1 / cr1.rate * 1 / cr2.rate) AS cr_rate
                 FROM conversion_rates AS cr1
                 JOIN conversion_rates AS cr2 ON cr1.base_currency_id = cr2.target_currency_id
                 JOIN currencies AS f ON cr1.target_currency_id = f.id
@@ -275,23 +275,9 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
                                                              String to,
                                                              Connection connection) throws SQLException {
 
-        var statement = connection.prepareStatement(SELECT_CROSS_RATE_BY_CODE);
+        var statement = connection.prepareStatement(SELECT_CROSS_RATE_BY_CODES);
 
-        // a->c & c->b
-        statement.setString(1, from);
-        statement.setString(2, to);
-
-        // c->a & c->b
-        statement.setString(3, from);
-        statement.setString(4, to);
-
-        // a->c & b->c
-        statement.setString(5, from);
-        statement.setString(6, to);
-
-        // c->a & b->c
-        statement.setString(7, from);
-        statement.setString(8, to);
+        setPreparedStatementParameters(statement, from, to, from, to, from, to, from, to);
 
         return statement;
     }
