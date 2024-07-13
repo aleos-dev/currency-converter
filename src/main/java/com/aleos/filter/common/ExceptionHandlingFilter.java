@@ -1,5 +1,6 @@
 package com.aleos.filter.common;
 
+import com.aleos.exception.dao.NullConstraintViolationException;
 import com.aleos.exception.dao.UnknownParameterTypeException;
 import com.aleos.exception.dao.DaoOperationException;
 import com.aleos.exception.dao.UniqueConstraintViolationException;
@@ -27,7 +28,8 @@ public class ExceptionHandlingFilter extends AbstractBaseFilter {
             chain.doFilter(req, resp);
         } catch (RequestBodyParsingException
                  | NumberFormatException
-                 | PayloadNotFoundException e) {
+                 | PayloadNotFoundException
+                 | NullConstraintViolationException e) {
             handleException(resp, e);
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 

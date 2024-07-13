@@ -149,6 +149,10 @@ public abstract class CrudDao<E extends Entity<K>, K> {
         return e.getMessage().contains("SQLITE_CONSTRAINT_UNIQUE");
     }
 
+    protected boolean isNullConstraintException(SQLException e) {
+        return e.getMessage().contains("SQLITE_CONSTRAINT_NOTNULL");
+    }
+
     protected abstract PreparedStatement createSaveStatement(E entity, Connection connection) throws SQLException;
 
     protected abstract PreparedStatement createSelectAllStatement(Connection connection) throws SQLException;

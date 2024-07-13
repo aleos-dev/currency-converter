@@ -1,6 +1,7 @@
 package com.aleos.dao;
 
 import com.aleos.exception.dao.DaoOperationException;
+import com.aleos.exception.dao.NullConstraintViolationException;
 import com.aleos.exception.dao.UniqueConstraintViolationException;
 import com.aleos.model.entity.ConversionRate;
 import com.aleos.model.entity.Currency;
@@ -318,17 +319,26 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
     }
 
     private DaoOperationException rollbackAndGetException(SQLException originalEx, Connection connection) {
-        DaoOperationException exceptionToReturn = isUniqueConstraintException(originalEx)
-                ? new UniqueConstraintViolationException("Not saved due to a unique constraint violation.", originalEx)
-                : new DaoOperationException("Transaction failed and was rolled back.", originalEx);
+
+        DaoOperationException exceptionToReturn;
+        if (isUniqueConstraintException(originalEx)) {
+            exceptionToReturn = new UniqueConstraintViolationException("Not saved due to a unique constraint violation.", originalEx);
+        } else if (isNullConstraintException(originalEx)) {
+            exceptionToReturn = new NullConstraintViolationException("Cannot be saved due to a non-existent currency code.", originalEx);
+        } else {
+            exceptionToReturn = new DaoOperationException("Transaction failed and was rolled back.", originalEx);
+        }
+
         try {
             if (connection != null) {
                 connection.rollback();
             }
+
             return exceptionToReturn;
 
         } catch (SQLException rollbackEx) {
             rollbackEx.addSuppressed(exceptionToReturn);
+
             throw new DaoOperationException("Unknown database error, rollback failed", rollbackEx);
         }
     }
