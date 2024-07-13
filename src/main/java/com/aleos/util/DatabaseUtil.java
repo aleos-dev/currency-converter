@@ -7,16 +7,16 @@ import org.flywaydb.core.Flyway;
 import javax.sql.DataSource;
 import java.util.Properties;
 
-public final class DbUtil {
+public final class DatabaseUtil {
 
     private static final DataSource DATA_SOURCE;
 
-    private DbUtil() {
+    private DatabaseUtil() {
         throw new UnsupportedOperationException("DbUtil instance cannot be created.");
     }
 
     static {
-        DATA_SOURCE = initDataSource();
+        DATA_SOURCE = createDataSource();
         runFlywayMigration(DATA_SOURCE);
     }
 
@@ -25,18 +25,18 @@ public final class DbUtil {
     }
 
     public static DataSource getTestDataSource() {
-        var dataSource = initDataSource();
+        var dataSource = createDataSource();
         runFlywayMigration(dataSource);
         return dataSource;
     }
 
-    private static DataSource initDataSource() {
+    private static DataSource createDataSource() {
             Properties properties = new Properties();
-            properties.setProperty("jdbcUrl", PropertiesUtil.DATABASE_URL);
-            properties.setProperty("username", PropertiesUtil.DATABASE_USER);
-            properties.setProperty("password", PropertiesUtil.DATABASE_PASSWORD);
-            properties.setProperty("driverClassName", PropertiesUtil.DATABASE_DRIVER);
-            properties.setProperty("maximumPoolSize", PropertiesUtil.DATABASE_POOL_SIZE);
+            properties.setProperty("jdbcUrl", PropertiesUtil.getProperty("database.url"));
+            properties.setProperty("username", PropertiesUtil.getProperty("database.user"));
+            properties.setProperty("password", PropertiesUtil.getProperty(("database.password")));
+            properties.setProperty("driverClassName", PropertiesUtil.getProperty("database.driver"));
+            properties.setProperty("maximumPoolSize", PropertiesUtil.getProperty("database.pool.size"));
 
             HikariConfig hikariConfig = new HikariConfig(properties);
             return new HikariDataSource(hikariConfig);

@@ -55,7 +55,7 @@ public final class ComponentInitializerUtil {
 
     public static void initializeDataSource(ServletContextEvent sce) {
 
-        DataSource dataSource = DbUtil.getDataSource();
+        DataSource dataSource = DatabaseUtil.getDataSource();
         String attributeName = RequestAttributeUtil.getName(DataSource.class);
         sce.getServletContext().setAttribute(attributeName, dataSource);
     }

@@ -2,7 +2,7 @@ package com.aleos.daos;
 
 import com.aleos.models.entities.ConversionRate;
 import com.aleos.models.entities.Currency;
-import com.aleos.util.DbUtil;
+import com.aleos.util.DatabaseUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +19,7 @@ class ConversionRateDaoTest {
 
     @BeforeEach
     public void init() {
-        DataSource dataSource = DbUtil.getTestDataSource();
+        DataSource dataSource = DatabaseUtil.getTestDataSource();
         conversionRateDao = new ConversionRateDao(dataSource);
         currencyDao = new CurrencyDao(dataSource);
     }

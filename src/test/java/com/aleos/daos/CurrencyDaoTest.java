@@ -1,7 +1,7 @@
 package com.aleos.daos;
 
 import com.aleos.models.entities.Currency;
-import com.aleos.util.DbUtil;
+import com.aleos.util.DatabaseUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +21,7 @@ class CurrencyDaoTest {
     @BeforeEach
     public void init() {
 
-        dataSource = DbUtil.getTestDataSource();
+        dataSource = DatabaseUtil.getTestDataSource();
         currencyDao = new CurrencyDao(dataSource);
     }
 

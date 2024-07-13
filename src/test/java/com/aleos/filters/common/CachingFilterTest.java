@@ -100,7 +100,7 @@ class CachingFilterTest {
 
     @Test
     void doFilter_ShouldPassThrough_IfNotCacheable() throws IOException, ServletException {
-        setupRequest("GET", PropertiesUtil.CONVERSION_SERVICE_URL);
+        setupRequest("GET", PropertiesUtil.getProperty("servlet.conversion.url"));
 
         cachingFilter.doFilter(request, response, chain);
 

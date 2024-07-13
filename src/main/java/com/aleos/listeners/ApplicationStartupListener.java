@@ -56,10 +56,10 @@ public class ApplicationStartupListener implements ServletContextListener {
     }
 
     private void registerServlets(ServletContextEvent event) {
-        ComponentInitializerUtil.registerServlet(event, CurrencyServlet.class, PropertiesUtil.CURRENCY_SERVICE_URL);
-        ComponentInitializerUtil.registerServlet(event, CurrenciesServlet.class, PropertiesUtil.CURRENCIES_SERVICE_URL);
-        ComponentInitializerUtil.registerServlet(event, ConversionRateServlet.class, PropertiesUtil.CONVERSION_RATE_SERVICE_URL);
-        ComponentInitializerUtil.registerServlet(event, ConversionRatesServlet.class, PropertiesUtil.CONVERSION_RATES_SERVICE_URL);
-        ComponentInitializerUtil.registerServlet(event, ConversionServlet.class, PropertiesUtil.CONVERSION_SERVICE_URL);
+        ComponentInitializerUtil.registerServlet(event, CurrencyServlet.class, PropertiesUtil.getProperty("servlet.currency.url"));
+        ComponentInitializerUtil.registerServlet(event, CurrenciesServlet.class, PropertiesUtil.getProperty("servlet.currencies.url"));
+        ComponentInitializerUtil.registerServlet(event, ConversionRateServlet.class, PropertiesUtil.getProperty("servlet.conversionRate.url"));
+        ComponentInitializerUtil.registerServlet(event, ConversionRatesServlet.class, PropertiesUtil.getProperty("servlet.conversionRates.url"));
+        ComponentInitializerUtil.registerServlet(event, ConversionServlet.class, PropertiesUtil.getProperty("servlet.conversion.url"));
     }
 }
