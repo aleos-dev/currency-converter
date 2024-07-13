@@ -1,6 +1,5 @@
 package com.aleos.filter.common;
 
-import com.aleos.exception.servlet.PayloadCastException;
 import com.aleos.exception.dao.UnknownParameterTypeException;
 import com.aleos.exception.dao.DaoOperationException;
 import com.aleos.exception.dao.UniqueConstraintViolationException;
@@ -39,7 +38,6 @@ public class ExceptionHandlingFilter extends AbstractBaseFilter {
         } catch (HttpResponseWritingException
                  | WrappedJsonProcessingException
                  | DaoOperationException
-                 | PayloadCastException
                  | ContextInitializationException
                  | UnknownParameterTypeException e) {
             handleException(resp, e);
