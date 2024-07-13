@@ -1,8 +1,16 @@
 package com.aleos.model.dto.in;
 
+import lombok.NonNull;
+
+import java.util.Locale;
+
 public record ConversionPayload (
-        String baseCurrencyCode,
-        String targetCurrencyCode,
-        Double amount
+        @NonNull String baseCurrencyCode,
+        @NonNull String targetCurrencyCode,
+        @NonNull Double amount
 ) {
+    public ConversionPayload {
+        baseCurrencyCode = baseCurrencyCode.toUpperCase(Locale.ROOT);
+        targetCurrencyCode = targetCurrencyCode.toUpperCase(Locale.ROOT);
+    }
 }

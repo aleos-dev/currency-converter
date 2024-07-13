@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public class CurrencyDao extends CrudDao<Currency, Integer> {
 
-    private static final String INSERT_SQL = "INSERT INTO currencies (fullname, code, sign) VALUES (?, ?, ?);";
+    private static final String INSERT_SQL = "INSERT INTO currencies (fullname, code, sign) VALUES (?, UPPER(?), ?);";
 
     private static final String SELECT_ALL_SQL = "SELECT id, fullname, code, sign FROM currencies;";
 
@@ -20,7 +20,7 @@ public class CurrencyDao extends CrudDao<Currency, Integer> {
             "SELECT id, fullname, code, sign FROM currencies WHERE code = ?;";
 
     private static final String UPDATE_BY_ID_SQL =
-            "UPDATE currencies SET fullname = ?, code = ? , sign = ? WHERE id = ?;";
+            "UPDATE currencies SET fullname = ?, code = UPPER(?) , sign = ? WHERE id = ?;";
 
     private static final String DELETE_BY_ID_SQL = "DELETE FROM currencies WHERE id = ?;";
 
