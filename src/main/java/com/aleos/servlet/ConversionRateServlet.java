@@ -18,7 +18,7 @@ import static jakarta.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 
 public class ConversionRateServlet extends BaseServlet {
 
-    private static ConversionRateService conversionRateService;
+    protected static ConversionRateService conversionRateService;
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

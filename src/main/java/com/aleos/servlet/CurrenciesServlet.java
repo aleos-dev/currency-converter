@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CurrenciesServlet extends BaseServlet {
 
-    private static CurrencyService currencyService;
+    protected static CurrencyService currencyService;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {

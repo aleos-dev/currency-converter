@@ -13,7 +13,7 @@ import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 public class CurrencyServlet extends BaseServlet {
 
-    private static CurrencyService currencyService;
+    protected static CurrencyService currencyService;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {

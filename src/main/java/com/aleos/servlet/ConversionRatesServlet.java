@@ -12,7 +12,7 @@ import static jakarta.servlet.http.HttpServletResponse.SC_CREATED;
 @RequiredArgsConstructor
 public class ConversionRatesServlet extends BaseServlet {
 
-    private static ConversionRateService conversionRateService;
+    protected static ConversionRateService conversionRateService;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {

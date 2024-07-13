@@ -14,7 +14,7 @@ import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 public class ConversionServlet extends BaseServlet {
 
-    private static ConversionService conversionService;
+    protected static ConversionService conversionService;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
