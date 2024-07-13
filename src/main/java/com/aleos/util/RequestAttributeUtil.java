@@ -1,6 +1,6 @@
 package com.aleos.util;
 
-import com.aleos.exceptions.servlets.PayloadNotFoundException;
+import com.aleos.exception.servlet.PayloadNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.NonNull;
 

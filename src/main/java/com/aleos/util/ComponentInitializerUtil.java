@@ -1,6 +1,6 @@
 package com.aleos.util;
 
-import com.aleos.exceptions.servlets.ContextInitializationException;
+import com.aleos.exception.servlet.ContextInitializationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
