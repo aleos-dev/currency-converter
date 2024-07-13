@@ -1,6 +1,6 @@
 package com.aleos.filters;
 
-import com.aleos.util.DependencyInjector;
+import com.aleos.util.ComponentInitializerUtil;
 import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpFilter;
@@ -13,7 +13,7 @@ public abstract class AbstractBaseFilter extends HttpFilter {
     @Override
     public void init(FilterConfig config) throws ServletException {
         super.init(config);
-        DependencyInjector.inject(config.getServletContext(), this);
+        ComponentInitializerUtil.injectDependencies(config.getServletContext(), this);
     }
 
     protected boolean isGet(HttpServletRequest req) {

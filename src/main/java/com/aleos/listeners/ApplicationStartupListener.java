@@ -9,7 +9,7 @@ import com.aleos.services.ConversionRateService;
 import com.aleos.services.ConversionService;
 import com.aleos.services.CurrencyService;
 import com.aleos.servlets.*;
-import com.aleos.util.DependencyInjector;
+import com.aleos.util.ComponentInitializerUtil;
 import com.aleos.util.PropertiesUtil;
 import com.aleos.validators.ConversionRateValidator;
 import com.aleos.validators.CurrencyValidator;
@@ -23,7 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @WebListener
-public class AppInitializerListener implements ServletContextListener {
+public class ApplicationStartupListener implements ServletContextListener {
 
     private static final Set<Class<?>> declaredComponents = new LinkedHashSet<>(Arrays.asList(
 
@@ -47,19 +47,19 @@ public class AppInitializerListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent event) {
 
-        DependencyInjector.initializeDataSource(event);
-        DependencyInjector.initializeObjectMapper(event);
-        DependencyInjector.initializeComponents(event, declaredComponents);
+        ComponentInitializerUtil.initializeDataSource(event);
+        ComponentInitializerUtil.initializeObjectMapper(event);
+        ComponentInitializerUtil.initializeComponents(event, declaredComponents);
 
-        // register servlets manually to dynamically load URL patterns and other configurations from property files
+        // register servlets manually to dynamically load configuration (URL patterns) from property files
         registerServlets(event);
     }
 
     private void registerServlets(ServletContextEvent event) {
-        DependencyInjector.registerServlet(event, CurrencyServlet.class, PropertiesUtil.CURRENCY_SERVICE_URL);
-        DependencyInjector.registerServlet(event, CurrenciesServlet.class, PropertiesUtil.CURRENCIES_SERVICE_URL);
-        DependencyInjector.registerServlet(event, ConversionRateServlet.class, PropertiesUtil.CONVERSION_RATE_SERVICE_URL);
-        DependencyInjector.registerServlet(event, ConversionRatesServlet.class, PropertiesUtil.CONVERSION_RATES_SERVICE_URL);
-        DependencyInjector.registerServlet(event, ConversionServlet.class, PropertiesUtil.CONVERSION_SERVICE_URL);
+        ComponentInitializerUtil.registerServlet(event, CurrencyServlet.class, PropertiesUtil.CURRENCY_SERVICE_URL);
+        ComponentInitializerUtil.registerServlet(event, CurrenciesServlet.class, PropertiesUtil.CURRENCIES_SERVICE_URL);
+        ComponentInitializerUtil.registerServlet(event, ConversionRateServlet.class, PropertiesUtil.CONVERSION_RATE_SERVICE_URL);
+        ComponentInitializerUtil.registerServlet(event, ConversionRatesServlet.class, PropertiesUtil.CONVERSION_RATES_SERVICE_URL);
+        ComponentInitializerUtil.registerServlet(event, ConversionServlet.class, PropertiesUtil.CONVERSION_SERVICE_URL);
     }
 }

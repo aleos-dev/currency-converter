@@ -13,13 +13,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
 
-public final class DependencyInjector {
+public final class ComponentInitializerUtil {
 
-    private DependencyInjector() {
-        throw new UnsupportedOperationException("DependencyInjector can't be instantiated.");
+    private ComponentInitializerUtil() {
+        throw new UnsupportedOperationException("ComponentInitializer can't be instantiated.");
     }
 
-    public static void inject(ServletContext context, Object component) {
+    public static void injectDependencies(ServletContext context, Object component) {
         for (Field field : component.getClass().getDeclaredFields()) {
             Class<?> clazz = field.getType();
             Object attribute = context.getAttribute(RequestAttributeUtil.getName(clazz));
@@ -43,7 +43,9 @@ public final class DependencyInjector {
         });
     }
 
-    public static void registerServlet(ServletContextEvent sce, Class<? extends HttpServlet> servletClass, String urlPattern) {
+    public static void registerServlet(ServletContextEvent sce,
+                                       Class<? extends HttpServlet> servletClass,
+                                       String urlPattern) {
         String attributeName = RequestAttributeUtil.getName(servletClass);
         HttpServlet servlet = instantiateClass(sce, servletClass);
 
