@@ -3,6 +3,7 @@ package com.aleos.servlet;
 import com.aleos.model.dto.in.ConversionRateIdentifierPayload;
 import com.aleos.model.dto.in.ConversionRatePayload;
 import com.aleos.model.dto.out.ConversionRateResponse;
+import com.aleos.model.dto.out.Error;
 import com.aleos.service.ConversionRateService;
 import com.aleos.util.RequestAttributeUtil;
 import jakarta.servlet.ServletException;
@@ -51,6 +52,8 @@ public class ConversionRateServlet extends BaseServlet {
         if (conversionRateService.update(payload)) {
             resp.setStatus(SC_NO_CONTENT);
         } else {
+            RequestAttributeUtil.setResponse(req, Error.of("Nothing to update with currency codes: %s and %s. Not exist."
+                    .formatted(payload.baseCurrencyCode(), payload.targetCurrencyCode())));
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
     }
