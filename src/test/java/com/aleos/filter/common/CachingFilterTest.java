@@ -15,12 +15,12 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 class CachingFilterTest {
 
@@ -45,7 +45,7 @@ class CachingFilterTest {
 
     @BeforeEach
     void setUp() {
-        mocks = MockitoAnnotations.openMocks(this);
+        mocks = openMocks(this);
     }
 
     @AfterEach

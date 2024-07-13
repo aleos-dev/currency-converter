@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.util.Optional;
 
@@ -21,6 +20,7 @@ import static com.aleos.servlet.common.HttpMethod.POST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.*;
 
 class CurrencyUrlFilterTest {
 
@@ -36,11 +36,11 @@ class CurrencyUrlFilterTest {
     @Mock
     HttpServletResponse response;
 
-    private AutoCloseable mocks;
+    AutoCloseable mocks;
 
     @BeforeEach
     void setUp() {
-        mocks = MockitoAnnotations.openMocks(this);
+        mocks = openMocks(this);
     }
 
     @AfterEach

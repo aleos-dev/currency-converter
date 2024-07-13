@@ -10,11 +10,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 
 import static org.mockito.Mockito.verify;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 class CorsFilterTest {
 
@@ -34,7 +34,7 @@ class CorsFilterTest {
 
     @BeforeEach
     void setUp() {
-        mocks = MockitoAnnotations.openMocks(this);
+        mocks = openMocks(this);
     }
 
     @AfterEach

@@ -12,13 +12,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import static com.aleos.servlet.common.HttpMethod.GET;
 import static com.aleos.servlet.common.HttpMethod.POST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 class CurrenciesUrlFilterTest {
 
@@ -38,7 +38,7 @@ class CurrenciesUrlFilterTest {
 
     @BeforeEach
     void setUp() {
-        mocks = MockitoAnnotations.openMocks(this);
+        mocks = openMocks(this);
     }
 
     @AfterEach

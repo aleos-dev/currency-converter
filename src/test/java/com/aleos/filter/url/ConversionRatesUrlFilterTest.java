@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
 
@@ -21,6 +20,7 @@ import static com.aleos.servlet.common.HttpMethod.GET;
 import static com.aleos.servlet.common.HttpMethod.POST;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 class ConversionRatesUrlFilterTest {
 
@@ -40,7 +40,7 @@ class ConversionRatesUrlFilterTest {
 
     @BeforeEach
     void setUp() {
-        mocks = MockitoAnnotations.openMocks(this);
+        mocks = openMocks(this);
     }
 
     @AfterEach
