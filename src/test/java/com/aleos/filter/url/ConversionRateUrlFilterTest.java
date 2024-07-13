@@ -132,7 +132,7 @@ class ConversionRateUrlFilterTest {
         final var payload = getValidPayload();
         doReturn(PATCH.toString()).when(request).getMethod();
         doReturn(payload).when(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
-        doReturn(new ValidationResult<>()).when(validator).validate(payload);
+        doReturn(new ValidationResult()).when(validator).validate(payload);
 
         var validationResult = filter.validatePayload(request, response);
 
@@ -142,7 +142,7 @@ class ConversionRateUrlFilterTest {
 
     @Test
     void validatePayload_ShouldReturnErrors_WhenPatchInvalidRequest() {
-        final var expectedValidationResult = new ValidationResult<Error>();
+        final var expectedValidationResult = new ValidationResult();
         final var payload = getInvalidPayloadWithBadRate();
         expectedValidationResult.add(getError());
         doReturn(PATCH.toString()).when(request).getMethod();

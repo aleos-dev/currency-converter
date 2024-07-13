@@ -88,7 +88,7 @@ class ConversionRatesUrlFilterTest {
     @Test
     void validatePayload_ShouldReturnNoErrors_WhenPayloadIsValid() {
         final var payload = getValidPayload();
-        final var validationResult = new ValidationResult<Error>();
+        final var validationResult = new ValidationResult();
         doReturn(POST.toString()).when(request).getMethod();
         doReturn(payload).when(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         doReturn(validationResult).when(validator).validate(payload);
@@ -102,7 +102,7 @@ class ConversionRatesUrlFilterTest {
 
     @Test
     void validatePayload_ShouldReturnErrors_WhenPayloadHasNullField() {
-        final var expectedValidationResult = new ValidationResult<Error>();
+        final var expectedValidationResult = new ValidationResult();
         final var payload = getInvalidPayloadWithNullField();
         expectedValidationResult.add(Error.of("Test error"));
         doReturn("POST").when(request).getMethod();

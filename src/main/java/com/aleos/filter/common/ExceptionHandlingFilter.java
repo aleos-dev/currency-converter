@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 
 public class ExceptionHandlingFilter extends AbstractBaseFilter {
 
-    private ObjectMapper objectMapper;
+    protected ObjectMapper objectMapper;
 
     private static final Logger logger = Logger.getLogger(ExceptionHandlingFilter.class.getName());
 

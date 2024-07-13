@@ -1,16 +1,17 @@
 package com.aleos.validator;
 
+import com.aleos.model.dto.out.Error;
 import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class ValidationResult<T> {
+public class ValidationResult {
 
-    List<T> errors = new ArrayList<>();
+    List<Error> errors = new ArrayList<>();
 
-    public void add(T error) {
+    public void add(Error error) {
         errors.add(error);
     }
 

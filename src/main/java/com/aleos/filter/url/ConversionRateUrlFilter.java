@@ -3,7 +3,6 @@ package com.aleos.filter.url;
 import com.aleos.exception.servlet.RequestBodyParsingException;
 import com.aleos.model.dto.in.ConversionRateIdentifierPayload;
 import com.aleos.model.dto.in.ConversionRatePayload;
-import com.aleos.model.dto.out.Error;
 import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validator.ConversionRateValidator;
 import com.aleos.validator.ValidationResult;
@@ -18,7 +17,7 @@ public class ConversionRateUrlFilter extends AbstractUrlFilter {
 
     private static final int CURRENCY_CODE_LENGTH = 3;
 
-    private ConversionRateValidator conversionRateValidator;
+    protected transient ConversionRateValidator conversionRateValidator;
 
     @Override
     protected void initializePayload(HttpServletRequest req, HttpServletResponse resp) {
@@ -33,8 +32,8 @@ public class ConversionRateUrlFilter extends AbstractUrlFilter {
     }
 
     @Override
-    protected ValidationResult<Error> validatePayload(HttpServletRequest req, HttpServletResponse resp) {
-        var validationResult = new ValidationResult<Error>();
+    protected ValidationResult validatePayload(HttpServletRequest req, HttpServletResponse resp) {
+        var validationResult = new ValidationResult();
 
         if (isGet(req)) {
             return conversionRateValidator.validateIdentifier(

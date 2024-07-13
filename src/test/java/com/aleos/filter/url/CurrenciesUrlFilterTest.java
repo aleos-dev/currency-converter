@@ -74,7 +74,7 @@ class CurrenciesUrlFilterTest {
     void validatePayload_ShouldReturnNoErrors_WhenPayloadIsValid() {
         final var payload = getUsdPayload();
         doReturn(POST.toString()).when(request).getMethod();
-        doReturn(new ValidationResult<>()).when(validator).validate(any());
+        doReturn(new ValidationResult()).when(validator).validate(any());
         doReturn(payload).when(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
 
         var validationResult = currenciesUrlFilter.validatePayload(request, response);
@@ -85,7 +85,7 @@ class CurrenciesUrlFilterTest {
 
     @Test
     void validatePayload_ShouldReturnErrors_WhenPayloadIsInvalid() {
-        final var expectedValidationResult = new ValidationResult<Error>();
+        final var expectedValidationResult = new ValidationResult();
         expectedValidationResult.add(getError());
         final var payload = getInvalidPayload();
         doReturn(POST.toString()).when(request).getMethod();

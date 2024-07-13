@@ -1,7 +1,6 @@
 package com.aleos.filter.url;
 
 import com.aleos.model.dto.in.CurrencyIdentifierPayload;
-import com.aleos.model.dto.out.Error;
 import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validator.CurrencyValidator;
 import com.aleos.validator.ValidationResult;
@@ -12,7 +11,7 @@ import java.util.Optional;
 
 public class CurrencyUrlFilter extends AbstractUrlFilter {
 
-    private CurrencyValidator currencyValidator;
+    protected transient CurrencyValidator currencyValidator;
 
     @Override
     protected void initializePayload(HttpServletRequest req, HttpServletResponse resp) {
@@ -23,8 +22,8 @@ public class CurrencyUrlFilter extends AbstractUrlFilter {
     }
 
     @Override
-    protected ValidationResult<Error> validatePayload(HttpServletRequest req, HttpServletResponse resp) {
-        var validationResult = new ValidationResult<Error>();
+    protected ValidationResult validatePayload(HttpServletRequest req, HttpServletResponse resp) {
+        var validationResult = new ValidationResult();
 
         if (isGet(req)) {
             CurrencyIdentifierPayload payload = RequestAttributeUtil.getPayload(req, CurrencyIdentifierPayload.class);

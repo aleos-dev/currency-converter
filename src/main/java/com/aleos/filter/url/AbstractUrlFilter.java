@@ -1,7 +1,6 @@
 package com.aleos.filter.url;
 
 import com.aleos.filter.AbstractBaseFilter;
-import com.aleos.model.dto.out.Error;
 import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validator.ValidationResult;
 import jakarta.servlet.FilterChain;
@@ -16,7 +15,7 @@ public abstract class AbstractUrlFilter extends AbstractBaseFilter {
 
     protected abstract void initializePayload(HttpServletRequest req, HttpServletResponse resp);
 
-    protected abstract ValidationResult<Error> validatePayload(HttpServletRequest req, HttpServletResponse resp);
+    protected abstract ValidationResult validatePayload(HttpServletRequest req, HttpServletResponse resp);
 
     @Override
     public void doFilter(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
@@ -25,7 +24,7 @@ public abstract class AbstractUrlFilter extends AbstractBaseFilter {
 
         initializePayload(req, resp);
 
-        ValidationResult<Error> validationResult = validatePayload(req, resp);
+        ValidationResult validationResult = validatePayload(req, resp);
 
         if (validationResult.hasErrors()) {
             RequestAttributeUtil.setResponse(req, validationResult.getErrors());

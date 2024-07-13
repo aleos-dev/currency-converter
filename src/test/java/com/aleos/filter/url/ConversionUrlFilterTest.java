@@ -90,7 +90,7 @@ class ConversionUrlFilterTest {
         doReturn(Optional.empty()).when(validator).validateIdentifier(identifier);
         doReturn(payload).when(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
 
-        ValidationResult<Error> validationResult = conversionUrlFilter.validatePayload(request, response);
+        ValidationResult validationResult = conversionUrlFilter.validatePayload(request, response);
 
         verify(request, times(1)).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         verify(validator, times(1)).validateIdentifier(identifier);
@@ -107,7 +107,7 @@ class ConversionUrlFilterTest {
         doReturn(Optional.of(errorResponse)).when(validator).validateIdentifier(identifier);
         doReturn(payload).when(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
 
-        ValidationResult<Error> validationResult = conversionUrlFilter.validatePayload(request, response);
+        ValidationResult validationResult = conversionUrlFilter.validatePayload(request, response);
 
         verify(request, times(1)).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         verify(validator, times(1)).validateIdentifier(identifier);
@@ -119,7 +119,7 @@ class ConversionUrlFilterTest {
         final String METHOD_POST = "POST";
         doReturn(METHOD_POST).when(request).getMethod();
 
-        ValidationResult<Error> validationResult = conversionUrlFilter.validatePayload(request, response);
+        ValidationResult validationResult = conversionUrlFilter.validatePayload(request, response);
 
         assertTrue(validationResult.isValid());
     }

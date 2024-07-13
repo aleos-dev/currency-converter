@@ -20,7 +20,7 @@ public class CachingFilter extends AbstractBaseFilter {
 
     private static final Logger LOGGER = Logger.getLogger(CachingFilter.class.getName());
 
-    private transient CacheService cacheService;
+    protected transient CacheService cacheService;
 
     @Override
     public void doFilter(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
@@ -34,7 +34,7 @@ public class CachingFilter extends AbstractBaseFilter {
             return;
         }
         if (isCacheableMethod(req)
-                && !req.getRequestURI().contains(PropertiesUtil.getProperty("servlet.conversion.url"))) {
+            && !req.getRequestURI().contains(PropertiesUtil.getProperty("servlet.conversion.url"))) {
             var cacheKey = getKey(req);
 
             if (cacheService.contains(cacheKey)) {

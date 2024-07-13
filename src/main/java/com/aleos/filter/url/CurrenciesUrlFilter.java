@@ -1,7 +1,6 @@
 package com.aleos.filter.url;
 
 import com.aleos.model.dto.in.CurrencyPayload;
-import com.aleos.model.dto.out.Error;
 import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validator.CurrencyValidator;
 import com.aleos.validator.ValidationResult;
@@ -10,7 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class CurrenciesUrlFilter extends AbstractUrlFilter {
 
-    private CurrencyValidator currencyValidator;
+    protected transient CurrencyValidator currencyValidator;
 
     @Override
     protected void initializePayload(HttpServletRequest req, HttpServletResponse resp) {
@@ -20,10 +19,10 @@ public class CurrenciesUrlFilter extends AbstractUrlFilter {
     }
 
     @Override
-    protected ValidationResult<Error> validatePayload(HttpServletRequest req, HttpServletResponse resp) {
+    protected ValidationResult validatePayload(HttpServletRequest req, HttpServletResponse resp) {
         return isPost(req)
                 ? currencyValidator.validate(RequestAttributeUtil.getPayload(req, CurrencyPayload.class))
-                : new ValidationResult<>();
+                : new ValidationResult();
     }
 
     private CurrencyPayload extractCurrencyPayload(HttpServletRequest req) {

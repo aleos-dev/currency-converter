@@ -1,7 +1,6 @@
 package com.aleos.filter.url;
 
 import com.aleos.model.dto.in.ConversionPayload;
-import com.aleos.model.dto.out.Error;
 import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validator.ConversionRateValidator;
 import com.aleos.validator.ValidationResult;
@@ -10,7 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class ConversionUrlFilter extends AbstractUrlFilter {
 
-    protected ConversionRateValidator validator;
+    protected transient ConversionRateValidator validator;
 
     @Override
     protected void initializePayload(HttpServletRequest req, HttpServletResponse resp) {
@@ -20,8 +19,8 @@ public class ConversionUrlFilter extends AbstractUrlFilter {
     }
 
     @Override
-    protected ValidationResult<Error> validatePayload(HttpServletRequest req, HttpServletResponse resp) {
-        var validationResult = new ValidationResult<Error>();
+    protected ValidationResult validatePayload(HttpServletRequest req, HttpServletResponse resp) {
+        var validationResult = new ValidationResult();
         if (isGet(req)) {
             var payload = RequestAttributeUtil.getPayload(req, ConversionPayload.class);
             validator.validateIdentifier(payload.baseCurrencyCode() + payload.targetCurrencyCode())

@@ -16,7 +16,7 @@ import java.io.IOException;
 
 public class JsonResponseFilter extends AbstractBaseFilter {
 
-    private ObjectMapper objectMapper;
+    protected ObjectMapper objectMapper;
 
     @Override
     public void doFilter(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)

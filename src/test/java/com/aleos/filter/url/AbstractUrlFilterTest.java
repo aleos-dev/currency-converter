@@ -50,7 +50,7 @@ class AbstractUrlFilterTest {
     void doFilter_CallNextFilter_WhenNoErrorsAreFound() throws IOException, ServletException {
         final var spy = spy(currencyUrlFilter);
         doNothing().when(spy).initializePayload(request, response);
-        doReturn(new ValidationResult<>()).when(spy).validatePayload(request, response);
+        doReturn(new ValidationResult()).when(spy).validatePayload(request, response);
 
         spy.doFilter(request, response, chain);
 
@@ -61,7 +61,7 @@ class AbstractUrlFilterTest {
 
     @Test
     void doFilter_neverCalledNextFilter_WhenErrorsOccur() throws IOException, ServletException {
-        final var validationResult = new ValidationResult<Error>();
+        final var validationResult = new ValidationResult();
         final var spy = spy(currencyUrlFilter);
         validationResult.add(Error.of("Abstract test error"));
         doNothing().when(spy).initializePayload(request, response);

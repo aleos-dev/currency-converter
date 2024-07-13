@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-public class CurrencyValidator extends AbstractPayloadValidator<CurrencyPayload, Error> {
+public class CurrencyValidator extends AbstractPayloadValidator<CurrencyPayload> {
 
     private static final Pattern CURRENCY_CODE_PATTERN = Pattern.compile("^([a-zA-Z]{3})$");
     private static final Pattern CURRENCY_IDENTIFIER_PATTERN = Pattern.compile("^[a-zA-Z]{3}$|^\\d+$");
@@ -18,14 +18,15 @@ public class CurrencyValidator extends AbstractPayloadValidator<CurrencyPayload,
     private static final int CURRENCY_SIGN_MAX_LENGTH = 5;
 
     @Override
-    public ValidationResult<Error> validate(CurrencyPayload payload) {
-        var validationResult = new ValidationResult<Error>();
+    public ValidationResult validate(CurrencyPayload payload) {
+        var validationResult = new ValidationResult();
         Stream.of(
                         validateName(payload.name()),
                         validateCode(payload.code()),
                         validateSign(payload.sign()))
                 .flatMap(Optional::stream)
                 .forEach(validationResult::add);
+
         return validationResult;
     }
 
@@ -43,10 +44,5 @@ public class CurrencyValidator extends AbstractPayloadValidator<CurrencyPayload,
 
     public Optional<Error> validateIdentifier(String value) {
         return validatePattern("Identifier", value, CURRENCY_IDENTIFIER_PATTERN);
-    }
-
-    @Override
-    protected Error buildError(String message, Object... args) {
-        return Error.of(String.format(message, args));
     }
 }
