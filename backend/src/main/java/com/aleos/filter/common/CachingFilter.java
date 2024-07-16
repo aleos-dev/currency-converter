@@ -3,7 +3,6 @@ package com.aleos.filter.common;
 import com.aleos.filter.AbstractBaseFilter;
 import com.aleos.service.CacheService;
 import com.aleos.service.CacheService.CacheEntry;
-import com.aleos.servlet.common.HttpMethod;
 import com.aleos.util.PropertiesUtil;
 import com.aleos.util.RequestAttributeUtil;
 import jakarta.servlet.FilterChain;
@@ -16,9 +15,25 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.aleos.servlet.common.HttpMethod.*;
+
 public class CachingFilter extends AbstractBaseFilter {
 
     private static final Logger LOGGER = Logger.getLogger(CachingFilter.class.getName());
+
+    private static final String NOT_CACHING_REGEX_FORMAT = ".*%s$";
+
+    private static final Set<String> INVALIDATING_METHODS = Set.of(
+            POST.name(),
+            PATCH.name(),
+            PUT.name(),
+            DELETE.name());
+
+    private final boolean isEnabled;
+
+    public CachingFilter() {
+        isEnabled = Boolean.parseBoolean(PropertiesUtil.getProperty("service.cache.enable"));
+    }
 
     protected transient CacheService cacheService;
 
@@ -26,27 +41,38 @@ public class CachingFilter extends AbstractBaseFilter {
     public void doFilter(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
             throws IOException, ServletException {
 
-        if (isInvalidatingMethod(req)) {
+        if (!isEnabled) {
+            chain.doFilter(req, resp);
+            return;
+        }
+
+        String method = req.getMethod();
+
+        if (isInvalidatingMethod(method)) {
             // Invalidate the cache before processing the request
             clearInvalidatingCache(req);
 
             chain.doFilter(req, resp);
             return;
         }
-        if (isCacheableMethod(req)
-            && !req.getRequestURI().contains(PropertiesUtil.getProperty("servlet.conversion.url"))) {
-            var cacheKey = getKey(req);
 
-            if (cacheService.contains(cacheKey)) {
-                prepareResponseFromCache(req, resp, cacheKey);
-                return;
-            }
+        var currentUri = req.getRequestURI();
+        var notCachingRegex = NOT_CACHING_REGEX_FORMAT
+                .formatted(PropertiesUtil.getProperty("servlet.conversion.url"));
 
+        if (currentUri.matches(notCachingRegex) || !isCacheableMethod(method)) {
             chain.doFilter(req, resp);
-            putResponseObjectToCache(req, resp, cacheKey);
-        } else {
-            chain.doFilter(req, resp);
+            return;
         }
+
+        var cacheKey = getKey(req);
+        if (cacheService.contains(cacheKey)) {
+            prepareResponseFromCache(req, resp, cacheKey);
+            return;
+        }
+
+        chain.doFilter(req, resp);
+        putResponseObjectToCache(req, resp, cacheKey);
     }
 
     private String getKey(HttpServletRequest req) {
@@ -75,19 +101,6 @@ public class CachingFilter extends AbstractBaseFilter {
         }
     }
 
-    private boolean isCacheableMethod(HttpServletRequest req) {
-        return HttpMethod.GET.name().equalsIgnoreCase(req.getMethod());
-    }
-
-    private boolean isInvalidatingMethod(HttpServletRequest req) {
-        return Set.of(
-                        HttpMethod.POST.name(),
-                        HttpMethod.PATCH.name(),
-                        HttpMethod.PUT.name(),
-                        HttpMethod.DELETE.name())
-                .contains(req.getMethod().toUpperCase());
-    }
-
     private void clearInvalidatingCache(HttpServletRequest req) {
         cacheService.remove(getKey(req));
 
@@ -95,6 +108,14 @@ public class CachingFilter extends AbstractBaseFilter {
             LOGGER.info("Cache invalidated due to modifying method: %s, key: %s "
                     .formatted(req.getMethod(), getKey(req)));
         }
+    }
+
+    private boolean isInvalidatingMethod(String method) {
+        return INVALIDATING_METHODS.contains(method.toUpperCase());
+    }
+
+    private boolean isCacheableMethod(String method) {
+        return GET.toString().equalsIgnoreCase(method);
     }
 }
 

@@ -178,6 +178,6 @@ class ConversionRateUrlFilterTest {
     private ConversionRatePayload getInvalidPayloadWithBadRate() {
         String from = "USE";
         String to = "EUR";
-        return new ConversionRatePayload(from, to, null);
+        return new ConversionRatePayload(from, to, BigDecimal.valueOf(-100));
     }
 }

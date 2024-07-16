@@ -3,7 +3,7 @@ package com.aleos.filter.common;
 import com.aleos.util.PropertiesUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +22,7 @@ class CorsFilterTest {
     private CorsFilter corsFilter;
 
     @Mock
-    private ServletRequest request;
+    private HttpServletRequest request;
 
     @Mock
     private HttpServletResponse response;

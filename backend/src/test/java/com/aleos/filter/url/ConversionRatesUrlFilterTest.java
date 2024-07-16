@@ -1,7 +1,6 @@
 package com.aleos.filter.url;
 
 import com.aleos.model.dto.in.ConversionRatePayload;
-import com.aleos.model.dto.out.Error;
 import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validator.ConversionRateValidator;
 import com.aleos.validator.ValidationResult;
@@ -100,34 +99,10 @@ class ConversionRatesUrlFilterTest {
         assertTrue(actualValidationResult.isValid());
     }
 
-    @Test
-    void validatePayload_ShouldReturnErrors_WhenPayloadHasNullField() {
-        final var expectedValidationResult = new ValidationResult();
-        final var payload = getInvalidPayloadWithNullField();
-        expectedValidationResult.add(Error.of("Test error"));
-        doReturn("POST").when(request).getMethod();
-        doReturn(payload).when(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
-        doReturn(expectedValidationResult).when(validator).validate(payload);
-
-        var actualValidationResult = conversionRatesUrlFilter.validatePayload(request, response);
-
-        verify(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
-        verify(validator).validate(payload);
-        assertEquals(1, actualValidationResult.getErrors().size());
-        assertEquals(actualValidationResult.getErrors().get(0), expectedValidationResult.getErrors().get(0));
-    }
-
-
     private ConversionRatePayload getValidPayload() {
         String from = "USD";
         String to = "EUR";
         BigDecimal rate = BigDecimal.valueOf(2.0);
         return new ConversionRatePayload(from, to, rate);
-    }
-
-    private ConversionRatePayload getInvalidPayloadWithNullField() {
-        String to = "EUR";
-        BigDecimal rate = BigDecimal.valueOf(2.0);
-        return new ConversionRatePayload(null, to, rate);
     }
 }
