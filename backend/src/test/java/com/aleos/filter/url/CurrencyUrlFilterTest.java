@@ -76,6 +76,8 @@ class CurrencyUrlFilterTest {
 
     @Test
     void validatePayload_ShouldReturnNoErrors_WhenPayloadIsValid() {
+        final var stub = new CurrencyIdentifierPayload("USD");
+        doReturn(stub).when(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         doReturn(GET.toString()).when(request).getMethod();
         doReturn(Optional.empty()).when(validator).validateIdentifier(any());
 
@@ -87,6 +89,8 @@ class CurrencyUrlFilterTest {
 
     @Test
     void validatePayload_ReturnErrors_WhenIdentifierIsInvalid() {
+        final var stub = new CurrencyIdentifierPayload("USD");
+        doReturn(stub).when(request).getAttribute(RequestAttributeUtil.PAYLOAD_MODEL);
         doReturn(GET.toString()).when(request).getMethod();
         doReturn(Optional.of(getError())).when(validator).validateIdentifier(any());
 

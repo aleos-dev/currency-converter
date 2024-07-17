@@ -50,7 +50,7 @@ class CorsFilterTest {
         corsFilter.doFilter(request, response, chain);
 
         verify(response)
-                .setHeader("Access-Control-Allow-Origin", PropertiesUtil.getProperty("response.cors.allowOrigin"));
+                .setHeader("Access-Control-Allow-Origin", PropertiesUtil.getProperty("cors.allowOrigin"));
         verify(chain).doFilter(request, response);
     }
 }
