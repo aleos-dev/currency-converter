@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="css/bootstrap.css" rel="stylesheet"/>
+    <title>Currency Exchange Service</title>
+</head>
+<body>
+<div class="container">
+    <h1 class="mb-4">Currency Exchange Service</h1>
+
+    <section class="mt-xxl-5">
+        <div class="row">
+            <div class="col col-6">
+                <h4>Available Currencies</h4>
+                <table class="table currencies-table">
+                    <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Sign</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>USD</td>
+                        <td>US Dollar</td>
+                        <td>$</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="col col-6">
+                <h4>Add New Currency</h4>
+                <form id="add-currency">
+                    <div class="form-group mt-3">
+                        <label for="add-currency-code">Code</label>
+                        <input class="form-control form-control-sm currency-code" id="add-currency-code" name="code"
+                               placeholder="USD" type="text">
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="add-currency-name">Name</label>
+                        <input class="form-control form-control-sm" id="add-currency-name" name="name"
+                               placeholder="US Dollar"
+                               type="text">
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="add-currency-sign">Sign</label>
+                        <input class="form-control form-control-sm" id="add-currency-sign" name="sign" placeholder="$"
+                               type="text">
+                    </div>
+                    <button class="btn btn-primary btn-sm mt-4" type="submit">Add Currency</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <section class="mt-xxl-5">
+        <h2>Exchange Rates</h2>
+        <table class="table exchange-rates-table">
+            <thead>
+            <tr>
+                <th>Currency</th>
+                <th>Exchange Rate</th>
+                <th>Edit</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>USDRUB</td>
+                <td>1.00</td>
+                <td>
+                    <button class="btn btn-secondary btn-sm exchange-rate-edit"
+                            data-bs-target="#edit-exchange-rate-modal" data-bs-toggle="modal"
+                            type="button">Edit
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Edit exchange rate modal -->
+    <div class="modal fade" id="edit-exchange-rate-modal" role="dialog" tabindex="-1">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Exchange Rate</h5>
+                    <button aria-label="Close" class="btn-close" data-bs-dismiss="modal" type="button"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="exchange-rate-input">Exchange Rate:</label>
+                            <input class="form-control" id="exchange-rate-input" type="text" value="1.00">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
+                    <button class="btn btn-primary" type="button">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="mt-xxl-5 pb-5">
+        <div class="row">
+            <div class="col col-6">
+                <h2>Add New Exchange Rate</h2>
+                <form id="add-exchange-rate">
+                    <div class="form-group">
+                        <label for="new-rate-base-currency">Base currency</label>
+                        <select class="form-control" id="new-rate-base-currency" name="baseCurrencyCode">
+                            <option value="USD">USD</option>
+                        </select>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="new-rate-target-currency">Target currency</label>
+                        <select class="form-control" id="new-rate-target-currency" name="targetCurrencyCode">
+                            <option value="USD">USD</option>
+                        </select>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="exchange-rate">Exchange Rate</label>
+                        <input class="form-control" id="exchange-rate" name="rate" placeholder="1.23" type="text">
+                    </div>
+                    <button class="btn btn-primary mt-3" type="submit">Add Exchange Rate</button>
+                </form>
+            </div>
+
+            <div class="col col-6"><h2>Currency Conversion</h2>
+                <form id="convert">
+                    <div class="form-group">
+                        <label for="convert-base-currency">Base Currency</label>
+                        <select class="form-control" id="convert-base-currency">
+                            <option value="USD">USD</option>
+                        </select>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="convert-target-currency">Target Currency</label>
+                        <select class="form-control" id="convert-target-currency">
+                            <option value="USD">USD</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group mt-3">
+                                <label for="convert-amount">Amount</label>
+                                <input class="form-control" id="convert-amount" placeholder="1.23" type="text">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group mt-3">
+                                <label for="convert-converted-amount">Converted amount</label>
+                                <input class="form-control" id="convert-converted-amount" type="text">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary mt-3" type="submit">Convert</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div aria-atomic="true" aria-live="assertive" class="toast hide" id="api-error-toast" role="alert">
+            <div class="toast-header">
+                <strong class="me-auto">Error</strong>
+                <button aria-label="Close" class="btn-close" data-bs-dismiss="toast" type="button"></button>
+
+            </div>
+            <div class="toast-body">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="js/jquery-3.6.3.min.js"></script>
+<script src="js/bootstrap.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
