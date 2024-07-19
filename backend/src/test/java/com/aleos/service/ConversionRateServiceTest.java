@@ -95,12 +95,12 @@ class ConversionRateServiceTest {
 
     @Test
     void delete_ShouldCallDaoDelete_WhenCalled() {
-        var id = 1;
-        doReturn(true).when(dao).delete(id);
+        var payload = new ConversionRateIdentifierPayload("1");
+        doReturn(true).when(dao).delete(1);
 
-        var result = service.delete(id);
+        var result = service.delete(payload);
 
         assertTrue(result);
-        verify(dao).delete(id);
+        verify(dao).delete(1);
     }
 }
