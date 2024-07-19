@@ -12,7 +12,9 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class ConversionRateValidator extends AbstractPayloadValidator<ConversionRatePayload> {
 
-    private static final Pattern CONVERSION_RATE_CODE_PATTERN = Pattern.compile("^([a-zA-Z]{6})$");
+    private static final Pattern CONVERSION_RATE_CODE_PATTERN = Pattern.compile("^(([a-zA-Z]{6})|(\\d+))$");
+
+    private static final Pattern CONVERSION_RATE_NUMERIC_IDENTIFIER_PATTERN = Pattern.compile("^(\\d+)$");
 
     @Override
     public ValidationResult validate(ConversionRatePayload payload) {
@@ -36,9 +38,12 @@ public class ConversionRateValidator extends AbstractPayloadValidator<Conversion
                 : Optional.of(Error.of("Rate should be positive."));
     }
 
-
     public Optional<Error> validateIdentifier(String value) {
         return validatePattern("Identifier", value, CONVERSION_RATE_CODE_PATTERN);
+    }
+
+    public Optional<Error> validateNumericIdentifier(String value) {
+        return validatePattern("Numeric identifier", value, CONVERSION_RATE_NUMERIC_IDENTIFIER_PATTERN);
     }
 
     private boolean isPositive(BigDecimal rate) {

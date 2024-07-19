@@ -3,7 +3,6 @@ package com.aleos.servlet;
 import com.aleos.model.dto.in.ConversionRateIdentifierPayload;
 import com.aleos.model.dto.in.ConversionRatePayload;
 import com.aleos.model.dto.out.ConversionRateResponse;
-import com.aleos.model.dto.out.Error;
 import com.aleos.service.ConversionRateService;
 import com.aleos.util.RequestAttributeUtil;
 import jakarta.servlet.ServletException;
@@ -14,7 +13,6 @@ import java.io.IOException;
 import java.util.Optional;
 
 import static com.aleos.servlet.common.HttpMethod.PATCH;
-import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static jakarta.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 
 public class ConversionRateServlet extends BaseServlet {
@@ -38,11 +36,8 @@ public class ConversionRateServlet extends BaseServlet {
 
         byPayload.ifPresentOrElse(
                 responseModel -> RequestAttributeUtil.setResponse(req, responseModel),
-                () -> {
-                    RequestAttributeUtil.setResponse(req, "Currency with identifier: %s not found."
-                            .formatted(payload.identifier()));
-                    resp.setStatus(SC_NOT_FOUND);
-                }
+                () -> setNotFoundResponse(req, resp,
+                        "Conversion rate with identifier: %s not found.".formatted(payload.identifier()))
         );
     }
 
@@ -52,9 +47,21 @@ public class ConversionRateServlet extends BaseServlet {
         if (conversionRateService.update(payload)) {
             resp.setStatus(SC_NO_CONTENT);
         } else {
-            RequestAttributeUtil.setResponse(req, Error.of("Nothing to update with currency codes: %s and %s. Not exist."
-                    .formatted(payload.baseCurrencyCode(), payload.targetCurrencyCode())));
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            setNotFoundResponse(req, resp, "Nothing to update with currency codes: %s and %s. Not exist."
+                    .formatted(payload.baseCurrencyCode(), payload.targetCurrencyCode()));
         }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) {
+        var payload = RequestAttributeUtil.getPayload(req, ConversionRateIdentifierPayload.class);
+
+        Optional.of(conversionRateService.delete(payload))
+                .filter(res -> res)
+                .ifPresentOrElse(
+                        success -> resp.setStatus(SC_NO_CONTENT),
+                        () -> setNotFoundResponse(req, resp,
+                                "Conversion rate with identifier: %s not found.".formatted(payload.identifier()))
+                );
     }
 }

@@ -43,7 +43,7 @@ public class ConversionRateService {
         return conversionRateDao.update(payload.baseCurrencyCode(), payload.targetCurrencyCode(), payload.rate());
     }
 
-    public boolean delete(int id) {
-        return conversionRateDao.delete(id);
+    public boolean delete(@NonNull ConversionRateIdentifierPayload payload) {
+        return conversionRateDao.delete(Integer.parseInt(payload.identifier()));
     }
 }

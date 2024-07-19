@@ -21,7 +21,7 @@ public class ConversionRateUrlFilter extends AbstractUrlFilter {
 
     @Override
     protected void initializePayload(HttpServletRequest req, HttpServletResponse resp) {
-        if (isGet(req)) {
+        if (isGet(req) || isDelete(req)) {
             extractConversionRateIdentifierPayload(req)
                     .ifPresent(payload -> RequestAttributeUtil.setPayload(req, payload));
 
@@ -36,18 +36,20 @@ public class ConversionRateUrlFilter extends AbstractUrlFilter {
         var validationResult = new ValidationResult();
 
         if (isGet(req)) {
-            return conversionRateValidator.validateIdentifier(
-                            RequestAttributeUtil.getPayload(req, ConversionRateIdentifierPayload.class).identifier())
-                    .map(error -> {
-                        validationResult.add(error);
-                        return validationResult;
-                    })
-                    .orElse(validationResult);
+
+            conversionRateValidator.validateIdentifier(
+                    RequestAttributeUtil.getPayload(req, ConversionRateIdentifierPayload.class).identifier()
+            ).ifPresent(validationResult::add);
+        } else if (isDelete(req)) {
+            conversionRateValidator.validateNumericIdentifier(
+                    RequestAttributeUtil.getPayload(req, ConversionRateIdentifierPayload.class).identifier()
+            ).ifPresent(validationResult::add);
+        } else if (isPatch(req)) {
+            validationResult = conversionRateValidator.validate(
+                    RequestAttributeUtil.getPayload(req, ConversionRatePayload.class));
         }
 
-        return isPatch(req)
-                ? conversionRateValidator.validate(RequestAttributeUtil.getPayload(req, ConversionRatePayload.class))
-                : validationResult;
+        return validationResult;
     }
 
     private Optional<ConversionRatePayload> extractConversionRatePayload(HttpServletRequest req) {
@@ -63,16 +65,21 @@ public class ConversionRateUrlFilter extends AbstractUrlFilter {
     }
 
     // extract rate from body for patch request
-    private BigDecimal extractRate(HttpServletRequest request) {
-        try {
-            return request.getReader().lines()
-                    .filter(row -> row.startsWith("rate="))
-                    .map(row -> row.split("=")[1])
-                    .findFirst()
-                    .map(BigDecimal::new)
-                    .orElseThrow(() -> new RequestBodyParsingException("Payload cannot be parsed."));
-        } catch (IOException e) {
-            throw new RequestBodyParsingException("Error reading request body.", e);
+    private BigDecimal extractRate(HttpServletRequest req) {
+        String contentType = req.getContentType();
+        String supportedContentType = "application/x-www-form-urlencoded";
+        if (supportedContentType.equals(contentType)) {
+            try {
+                return req.getReader().lines()
+                        .filter(row -> row.startsWith("rate="))
+                        .map(row -> row.split("=")[1])
+                        .findFirst()
+                        .map(BigDecimal::new)
+                        .orElseThrow(() -> new RequestBodyParsingException("Payload cannot be parsed."));
+            } catch (IOException e) {
+                throw new RequestBodyParsingException("Error reading request body.", e);
+            }
         }
+        throw new RequestBodyParsingException("Unsupported Content-Type: " + contentType);
     }
 }
