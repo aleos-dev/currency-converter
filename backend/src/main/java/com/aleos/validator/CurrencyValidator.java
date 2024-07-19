@@ -11,6 +11,7 @@ public class CurrencyValidator extends AbstractPayloadValidator<CurrencyPayload>
 
     private static final Pattern CURRENCY_CODE_PATTERN = Pattern.compile("^([a-zA-Z]{3})$");
     private static final Pattern CURRENCY_IDENTIFIER_PATTERN = Pattern.compile("^[a-zA-Z]{3}$|^\\d+$");
+    private static final Pattern CURRENCY_NUMERIC_IDENTIFIER_PATTERN = Pattern.compile("^(\\d)+$");
 
     private static final int CURRENCY_NAME_MIN_LENGTH = 3;
     private static final int CURRENCY_NAME_MAX_LENGTH = 30;
@@ -44,5 +45,9 @@ public class CurrencyValidator extends AbstractPayloadValidator<CurrencyPayload>
 
     public Optional<Error> validateIdentifier(String value) {
         return validatePattern("Identifier", value, CURRENCY_IDENTIFIER_PATTERN);
+    }
+
+    public Optional<Error> validateNumericIdentifier(String value) {
+        return validatePattern("Numeric identifier", value, CURRENCY_NUMERIC_IDENTIFIER_PATTERN);
     }
 }

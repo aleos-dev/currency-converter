@@ -39,14 +39,14 @@ public class CurrencyService {
                 : currencyDao.find(payload.identifier()).map(mapper::toDto);
     }
 
-    public void update(int id, @NonNull CurrencyPayload payload) {
+    public boolean update(int id, @NonNull CurrencyPayload payload) {
         Currency toUpdate = mapper.toEntity(payload);
         toUpdate.setId(id);
 
-        currencyDao.update(toUpdate);
+        return currencyDao.update(toUpdate);
     }
 
-    public void delete(int id) {
-        currencyDao.delete(id);
+    public boolean delete(@NonNull CurrencyIdentifierPayload payload) {
+        return currencyDao.delete(Integer.parseInt(payload.identifier()));
     }
 }
