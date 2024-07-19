@@ -27,4 +27,9 @@ public abstract class AbstractBaseFilter extends HttpFilter {
     protected boolean isPatch(HttpServletRequest req) {
         return PATCH.isMatches(req.getMethod());
     }
+
+
+    protected boolean isDelete(HttpServletRequest req) {
+        return DELETE.isMatches(req.getMethod());
+    }
 }
