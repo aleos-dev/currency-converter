@@ -47,7 +47,7 @@ functionality and relies on ComponentInitializerUtil to instantiate these compon
 Despite not requiring all CRUD operations per project specifications, I  decided to implement them to gain experience with the interplay between entities facilitated by an abstract CRUD class. This approach allowed me to extract common logic into a base class, enhancing code reuse and maintainability.
 
  #### Exposure of Entity Identifiers:
-`Initially, the implementation exposed both the surrogate key and natural keys of entities. However, this led to challenges in managing the "identifier dualism". Thus, I decided to expose only the natural keys and keep the surrogate keys for internal use.`
+`The implementation exposed both the surrogate and natural keys of entities. However, this led to challenges in managing both of them, termed "identifier dualism." Therefore, this issue should be taken into consideration in future implementations.`
 
 #### Abstract Class for CRUD Operations:
 `To centralize common CRUD functionalities, an abstract class was employed, necessitating that all entities implement a generic interface which defines getId() and setId() methods. This design choice allowed CRUD operations related to the entity's ID to be abstracted into the parent class.`
@@ -85,7 +85,7 @@ corresponding entity requires complete currency instances.`
 
 `To resolve this, there is either a need to create new DAO methods that cater to these requirements or to implement workarounds, both of which may be seen as less than ideal. This scenario poses a significant design decision: should the API be adapted to include more user-friendly methods, or should the responsibility be shifted to the clients to manage the complexities of providing what the DAO needs?`
 
-#### Complexity in Model Conversion: 
+#### Complexity in ModelMapper Conversion: 
 `The use of ModelMapper exposed limitations when dealing with Java records due to its reliance on reflection, which is not optimized for the immutable properties of records. This led to a manual configuration of DTO-to-entity mappings.`
 
 #### Caching Mechanism:
@@ -94,7 +94,7 @@ provides insights into caching operations through console logs when enabled. Thi
 
 ### Servlets
 I try to keep this layes as simple as it can be. The validation, payload extraction and response composing take out 
-to filters responsibility. It generally call service and handle result in proper way.
+to filter responsibility. It generally calls service and handles result in proper way.
 
 #### BaseServlet: 
 `All main servlets extend an abstract BaseServlet, which overrides the default init() method to inject dependencies.` 
@@ -149,7 +149,8 @@ These filters are bound to specific servlets and prepare the working environment
     ConversionRateUrlFilter
     ConversionUrlFilter
 
-Each filter ensures the incoming request data is correctly formatted and validated before it is processed by the servlets. 
+Each filter ensures the incoming request data is correctly formatted and validated before it is processed by the 
+servlets. They are registered using web.xml, as @WebFilter cannot guarantee the order.
 
 
 # Exchange Rates API
@@ -161,7 +162,7 @@ This API allows you to interact with exchange rates and currencies. Below are th
 - [x] [GET Specific Exchange Rate](#get-specific-exchange-rates)
 - [x] [Add New Exchange Rate](#add-new-exchange-rate)
 - [x] [Update Existing Exchange Rate](#update-existing-exchange-rate)
-- [ ] [Delete Currency](#delete-exchange-rate)
+- [x] [Delete Existing Exchange Rate](#delete-existing-exchange-rate)
 
 #### Conversion API
 - [x] [Currency Exchange Calculation](#currency-exchange-calculation)
@@ -170,8 +171,8 @@ This API allows you to interact with exchange rates and currencies. Below are th
 - [x] [GET All Currencies](#get-all-currencies)
 - [x] [GET Specific Currency](#get-specific-currency)
 - [x] [Add New Currency](#add-new-currency)
-- [ ] [Update Existing Currency](#update-existing-currency)
-- [ ] [Delete Currency](#delete-currency)
+- [x] [Update Existing Currency](#update-existing-currency)
+- [x] [Delete Existing Currency](#delete-existing-currency)
 
 ## Endpoints
 
@@ -329,6 +330,22 @@ currency codes in the request path. Data is submitted in the request body as for
 - `404 Not Found` - Currency pair not found in the database
 - `500 Internal Server Error` - Error (e.g., database unavailable)
 
+
+#### Delete Existing Exchange Rate
+
+**Endpoint:** `DELETE /exchangeRate/{id}`
+
+**Description:** Delete an existing exchange rate in the database. The currency is specified by the integer identifier in the request path.
+
+**Example Request:** `DELETE /exchangeRate/1`
+
+**HTTP Response Codes:**
+
+- `204 OK` - Success
+- `400 Bad Request` - Missing or invalid a required path identifier
+- `404 Not Found` - ExchangeRate not found in the database
+- `500 Internal Server Error` - Error (e.g., database unavailable)
+
 #### Currency Exchange Calculation
 
 **Endpoint:** `GET /exchange?from=BASE_CURRENCY_CODE&to=TARGET_CURRENCY_CODE&amount=$AMOUNT`
@@ -453,4 +470,41 @@ x-www-form-urlencoded).
 - `201 Created` - Success
 - `400 Bad Request` - Missing required form field
 - `409 Conflict` - Currency with the same code already exists
+- `500 Internal Server Error` - Error (e.g., database unavailable)
+- 
+#### Update Existing Currency
+
+**Endpoint:** `PATCH /currency/{id}
+
+**Description:** Updates an existing currency in the database. The currency is specified by the integer identifier 
+in the request path. Data is submitted in the request body as form fields (x-www-form-urlencoded).
+
+**Form Fields:**
+
+- `name` - e.g., Dollar
+- `code` - e.g., USD
+- `sign` - e.g., $
+
+
+**HTTP Response Codes:**
+
+- `204 OK` - Success
+- `400 Bad Request` - Missing required form field or invalid identifier
+- `404 Not Found` - Currency not found in the database
+- `500 Internal Server Error` - Error (e.g., database unavailable)
+
+
+#### Delete Existing Currency
+
+**Endpoint:** `DELETE /currency/{id}`
+
+**Description:** Delete an existing currency in the database. The currency is specified by the integer identifier in the request path.
+
+**Example Request:** `DELETE /exchangeRate/1`
+
+**HTTP Response Codes:**
+
+- `204 OK` - Success
+- `400 Bad Request` - Missing or invalid a required path identifier
+- `404 Not Found` - Currency not found in the database
 - `500 Internal Server Error` - Error (e.g., database unavailable)
