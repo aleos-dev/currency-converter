@@ -77,8 +77,10 @@ class ConversionRateUrlFilterTest {
     void initializePayload_ShouldSetPayload_WhenPatchRequestType() throws IOException {
         final var payload = getValidPayload();
         final String CORRECT_PATH_INFO = "/" + payload.baseCurrencyCode() + payload.targetCurrencyCode();
+        final var contentType = "application/x-www-form-urlencoded";
         doReturn(PATCH.toString()).when(request).getMethod();
         doReturn(CORRECT_PATH_INFO).when(request).getPathInfo();
+        doReturn(contentType).when(request).getContentType();
         doReturn(reader).when(request).getReader();
         doReturn(Stream.of("rate=" + payload.rate())).when(reader).lines();
 
@@ -95,7 +97,7 @@ class ConversionRateUrlFilterTest {
 
         filter.initializePayload(request, response);
 
-        verify(request, times(2)).getMethod();
+        verify(request, times(3)).getMethod();
         verify(request, never()).getParameter(anyString());
     }
 

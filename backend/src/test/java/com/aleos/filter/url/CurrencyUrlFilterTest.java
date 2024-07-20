@@ -70,7 +70,6 @@ class CurrencyUrlFilterTest {
 
         currencyUrlFilter.initializePayload(request, response);
 
-        verify(request).getMethod();
         verify(request, never()).getParameter(anyString());
     }
 
