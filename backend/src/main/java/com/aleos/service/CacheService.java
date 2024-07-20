@@ -26,8 +26,10 @@ public class CacheService {
     public void remove(String cacheKey) {
         if (cacheKey.contains("currency")) {
             cache.entrySet().removeIf(entry -> entry.getKey().matches(".*(currency|currencies).*"));
+
         } else if (cacheKey.contains("exchangeRate")) {
             cache.entrySet().removeIf(entry -> entry.getKey().matches(".*(exchangeRate|exchangeRates).*"));
+
         } else {
             cache.remove(cacheKey);
         }

@@ -18,6 +18,7 @@ public final class RequestAttributeUtil {
     public static String getName(Class<?> clazz) {
         String className = clazz.getSimpleName();
         var letter = className.substring(0, 1);
+
         return className.replaceFirst(letter, letter.toLowerCase());
     }
 
@@ -26,9 +27,11 @@ public final class RequestAttributeUtil {
 
         if (rawPayload == null) {
             throw new PayloadNotFoundException("Payload is not found for %s".formatted(clazz.getSimpleName()));
+
         } else if (!clazz.isInstance(rawPayload)) {
             throw new PayloadNotFoundException("Payload type is invalid. Expected: %s, Found: %s".formatted(
                     clazz.getSimpleName(), rawPayload.getClass().getSimpleName()));
+
         } else {
             return clazz.cast(rawPayload);
         }

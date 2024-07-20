@@ -22,6 +22,7 @@ public class CurrencyService {
     public CurrencyResponse save(@NonNull CurrencyPayload payload) {
         Currency newCurrency = mapper.toEntity(payload);
         currencyDao.save(newCurrency);
+
         return mapper.toDto(newCurrency);
     }
 

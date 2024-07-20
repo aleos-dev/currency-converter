@@ -40,10 +40,12 @@ public class ConversionRateUrlFilter extends AbstractUrlFilter {
             conversionRateValidator.validateIdentifier(
                     RequestAttributeUtil.getPayload(req, ConversionRateIdentifierPayload.class).identifier()
             ).ifPresent(validationResult::add);
+
         } else if (isDelete(req)) {
             conversionRateValidator.validateNumericIdentifier(
                     RequestAttributeUtil.getPayload(req, ConversionRateIdentifierPayload.class).identifier()
             ).ifPresent(validationResult::add);
+
         } else if (isPatch(req)) {
             validationResult = conversionRateValidator.validate(
                     RequestAttributeUtil.getPayload(req, ConversionRatePayload.class));

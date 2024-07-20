@@ -35,9 +35,12 @@ public class CurrencyMapper {
 
             return currency;
         };
-        TypeMap<Currency, CurrencyResponse> toDtoTypeMap = modelMapper.createTypeMap(Currency.class, CurrencyResponse.class);
+        TypeMap<Currency, CurrencyResponse> toDtoTypeMap =
+                modelMapper.createTypeMap(Currency.class, CurrencyResponse.class);
         toDtoTypeMap.setConverter(toDtoConverter);
-        TypeMap<CurrencyPayload, Currency> toEntityTypeMap = modelMapper.createTypeMap(CurrencyPayload.class, Currency.class);
+
+        TypeMap<CurrencyPayload, Currency> toEntityTypeMap =
+                modelMapper.createTypeMap(CurrencyPayload.class, Currency.class);
         toEntityTypeMap.setConverter(toEntityConverter);
     }
 

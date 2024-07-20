@@ -74,15 +74,11 @@ public class CurrencyUrlFilter extends AbstractUrlFilter {
     }
 
     private Optional<CurrencyPayload> extractCurrencyPayload(HttpServletRequest req) {
-
         var contentMap = extractContentForPatch(req);
 
         String name = contentMap.get("name");
         String code = contentMap.get("code");
         String sign = contentMap.get("sign");
-        if (name == null || code == null || sign == null) {
-            return Optional.empty();
-        }
 
         return Optional.of(new CurrencyPayload(name, code, sign));
     }

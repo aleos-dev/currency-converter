@@ -23,6 +23,7 @@ public class ConversionRateServlet extends BaseServlet {
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (PATCH.isMatches(req.getMethod())) {
             doPatch(req, resp);
+
         } else {
             super.service(req, resp);
         }

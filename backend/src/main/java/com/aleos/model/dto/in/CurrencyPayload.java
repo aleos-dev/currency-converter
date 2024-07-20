@@ -1,15 +1,13 @@
 package com.aleos.model.dto.in;
 
-import lombok.NonNull;
-
 import java.util.Locale;
 
 public record CurrencyPayload(
-        @NonNull String name,
-        @NonNull String code,
-        @NonNull String sign
+        String name,
+        String code,
+        String sign
 ) {
     public CurrencyPayload {
-        code = code.toUpperCase(Locale.ROOT);
+        code = code == null ? code : code.toUpperCase(Locale.ROOT);
     }
 }
