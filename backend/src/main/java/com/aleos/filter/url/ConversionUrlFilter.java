@@ -1,5 +1,6 @@
 package com.aleos.filter.url;
 
+import com.aleos.exception.servlet.BadParameterException;
 import com.aleos.model.dto.in.ConversionPayload;
 import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validator.ConversionRateValidator;
@@ -31,10 +32,13 @@ public class ConversionUrlFilter extends AbstractUrlFilter {
     }
 
     private ConversionPayload extractConversionPayload(HttpServletRequest req) {
-        return new ConversionPayload(
-                req.getParameter("from"),
-                req.getParameter("to"),
-                Double.parseDouble(req.getParameter("amount"))
-        );
+        try {
+            return new ConversionPayload(
+                    req.getParameter("from"),
+                    req.getParameter("to"),
+                    Double.parseDouble(req.getParameter("amount")));
+        } catch (NullPointerException | NumberFormatException e) {
+            throw new BadParameterException("Amount has an invalid format.");
+        }
     }
 }

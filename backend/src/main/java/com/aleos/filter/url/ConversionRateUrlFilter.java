@@ -74,12 +74,14 @@ public class ConversionRateUrlFilter extends AbstractUrlFilter {
             try {
                 return req.getReader().lines()
                         .filter(row -> row.startsWith("rate="))
-                        .map(row -> row.split("=")[1])
+                        .map(row -> row.replace("rate=", ""))
                         .findFirst()
                         .map(BigDecimal::new)
                         .orElseThrow(() -> new RequestBodyParsingException("Payload cannot be parsed."));
             } catch (IOException e) {
                 throw new RequestBodyParsingException("Error reading request body.", e);
+            } catch (NumberFormatException e) {
+                throw new RequestBodyParsingException("Rate has an invalid format.", e);
             }
         }
         throw new RequestBodyParsingException("Unsupported Content-Type: " + contentType);

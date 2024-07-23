@@ -1,5 +1,6 @@
 package com.aleos.filter.url;
 
+import com.aleos.exception.servlet.BadParameterException;
 import com.aleos.model.dto.in.ConversionPayload;
 import com.aleos.model.dto.out.Error;
 import com.aleos.util.RequestAttributeUtil;
@@ -79,7 +80,7 @@ class ConversionUrlFilterTest {
         doReturn(GET.toString()).when(request).getMethod();
         doReturn(INVALID_AMOUNT).when(request).getParameter("amount");
 
-        assertThrows(NumberFormatException.class, () -> spy.initializePayload(request, response));
+        assertThrows(BadParameterException.class, () -> spy.initializePayload(request, response));
     }
 
     @Test

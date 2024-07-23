@@ -1,5 +1,6 @@
 package com.aleos.filter.url;
 
+import com.aleos.exception.servlet.BadParameterException;
 import com.aleos.model.dto.in.ConversionRatePayload;
 import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validator.ConversionRateValidator;
@@ -28,10 +29,14 @@ public class ConversionRatesUrlFilter extends AbstractUrlFilter {
     }
 
     private ConversionRatePayload extractConversionRatePayload(HttpServletRequest req) {
-        return new ConversionRatePayload(
-                req.getParameter("baseCurrencyCode"),
-                req.getParameter("targetCurrencyCode"),
-                new BigDecimal(req.getParameter("rate"))
-        );
+
+        try {
+            return new ConversionRatePayload(
+                    req.getParameter("baseCurrencyCode"),
+                    req.getParameter("targetCurrencyCode"),
+                    new BigDecimal(req.getParameter("rate")));
+        } catch (NullPointerException | NumberFormatException e) {
+            throw new BadParameterException("Rate has an invalid format.");
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.aleos.filter.url;
 
+import com.aleos.exception.servlet.BadParameterException;
 import com.aleos.model.dto.in.ConversionRatePayload;
 import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validator.ConversionRateValidator;
@@ -81,7 +82,7 @@ class ConversionRatesUrlFilterTest {
         doReturn(POST.toString()).when(request).getMethod();
         doReturn(invalidRate).when(request).getParameter("rate");
 
-        assertThrows(NumberFormatException.class, () -> spy.initializePayload(request, response));
+        assertThrows(BadParameterException.class, () -> spy.initializePayload(request, response));
     }
 
     @Test
