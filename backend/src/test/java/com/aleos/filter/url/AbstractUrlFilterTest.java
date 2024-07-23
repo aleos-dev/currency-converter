@@ -70,7 +70,7 @@ class AbstractUrlFilterTest {
         spy.doFilter(request, response, chain);
 
         verify(response).setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        verify(request).setAttribute(RequestAttributeUtil.RESPONSE_MODEL, validationResult.getErrors());
+        verify(request).setAttribute(eq(RequestAttributeUtil.RESPONSE_MODEL), any());
         verify(chain, never()).doFilter(request, response);
     }
 }

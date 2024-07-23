@@ -1,6 +1,7 @@
 package com.aleos.filter.url;
 
 import com.aleos.filter.AbstractBaseFilter;
+import com.aleos.model.dto.out.Error;
 import com.aleos.util.RequestAttributeUtil;
 import com.aleos.validator.ValidationResult;
 import jakarta.servlet.FilterChain;
@@ -10,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public abstract class AbstractUrlFilter extends AbstractBaseFilter {
 
@@ -25,13 +27,16 @@ public abstract class AbstractUrlFilter extends AbstractBaseFilter {
         initializePayload(req, resp);
 
         ValidationResult validationResult = validatePayload(req, resp);
-
         if (validationResult.hasErrors()) {
-            RequestAttributeUtil.setResponse(req, validationResult.getErrors());
+
+            // should wrap in Error due to the project requirements
+            String message = validationResult.getErrors().stream()
+                            .map(Error::getMessage)
+                            .collect(Collectors.joining(System.lineSeparator()));
+            RequestAttributeUtil.setResponse(req, Error.of(message));
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
-
         chain.doFilter(req, resp);
     }
 
