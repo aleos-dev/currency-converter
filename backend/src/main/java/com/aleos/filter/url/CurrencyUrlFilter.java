@@ -100,6 +100,6 @@ public class CurrencyUrlFilter extends AbstractUrlFilter {
                 throw new RequestBodyParsingException("Failed to parse PATCH request", e);
             }
         }
-        throw new IllegalArgumentException("Unsupported content type: " + contentType);
+        throw new RequestBodyParsingException("Unsupported Content-Type: " + contentType);
     }
 }
