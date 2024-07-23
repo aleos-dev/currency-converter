@@ -17,7 +17,7 @@ public abstract class AbstractPayloadValidator<T> {
 
         return pattern.matcher(value).matches()
                 ? Optional.empty()
-                : Optional.of(Error.of("%s should match to %s regex.".formatted(field, pattern.pattern())));
+                : Optional.of(Error.of("%s has an invalid format.".formatted(field)));
     }
 
     protected Optional<Error> validateField(String field, String value, int minLength, int maxLength) {
