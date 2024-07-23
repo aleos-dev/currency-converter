@@ -12,7 +12,9 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class ConversionRateValidator extends AbstractPayloadValidator<ConversionRatePayload> {
 
-    private static final Pattern CONVERSION_RATE_CODE_PATTERN = Pattern.compile("^(([a-zA-Z]{6})|(\\d+))$");
+    private static final Pattern CONVERSION_RATE_CODE_PATTERN = Pattern.compile(
+            "^(?!(?i)(\\p{Alpha}{3})\\1$)(\\p{Alpha}{6}|\\d+)$"
+    );
 
     private static final Pattern CONVERSION_RATE_NUMERIC_IDENTIFIER_PATTERN = Pattern.compile("^(\\d+)$");
 
@@ -39,7 +41,7 @@ public class ConversionRateValidator extends AbstractPayloadValidator<Conversion
     }
 
     public Optional<Error> validateIdentifier(String value) {
-        return validatePattern("Identifier", value, CONVERSION_RATE_CODE_PATTERN);
+        return validatePattern("Currency codes as an identifier of conversion ", value, CONVERSION_RATE_CODE_PATTERN);
     }
 
     public Optional<Error> validateNumericIdentifier(String value) {
