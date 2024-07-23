@@ -28,7 +28,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
 
     private static final String INSERT_WITH_CURRENCY_CODES_AS_FOREIGN_KEYS_SQL = """
             INSERT INTO conversion_rates (base_currency_id, target_currency_id, rate)
-            VALUES ((SELECT id FROM currencies WHERE code = ?), (SELECT id FROM currencies WHERE code = ?), ?)
+            VALUES ((SELECT id FROM currencies WHERE code = UPPER(?)), (SELECT id FROM currencies WHERE code = UPPER(?)), ?)
             """;
 
     private static final String SELECT_ALL_SQL = """
@@ -51,7 +51,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
     private static final String SELECT_BY_ID_SQL = String.format("%s %s", SELECT_ALL_SQL, "WHERE cr.id = ?;");
 
     private static final String SELECT_BY_CURRENCY_CODES_SQL =
-            String.format("%s %s", SELECT_ALL_SQL, "WHERE base_cur.code = ? AND target_cur.code = ?;");
+            String.format("%s %s", SELECT_ALL_SQL, "WHERE base_cur.code = UPPER(?) AND target_cur.code = UPPER(?);");
 
     private static final String UPDATE_BY_ID_SQL =
             "UPDATE conversion_rates SET base_currency_id = ?, target_currency_id = ?, rate = ? WHERE id = ?;";
@@ -59,8 +59,8 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
     private static final String UPDATE_RATE_BY_CURRENCY_CODES_SQL = """
             UPDATE conversion_rates
             SET rate = ?
-            WHERE base_currency_id = (SELECT id FROM currencies WHERE code = ?)
-              AND target_currency_id = (SELECT id FROM currencies WHERE code = ?)
+            WHERE base_currency_id = (SELECT id FROM currencies WHERE code = UPPER(?))
+              AND target_currency_id = (SELECT id FROM currencies WHERE code = UPPER(?))
             """;
 
     private static final String DELETE_BY_ID_SQL = "DELETE FROM conversion_rates WHERE id = ?;";
@@ -77,7 +77,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
                 JOIN conversion_rates AS cr2 ON cr1.base_currency_id = cr2.base_currency_id
                 JOIN currencies AS f ON cr1.target_currency_id = f.id
                 JOIN currencies AS t ON t.id = cr2.target_currency_id
-                WHERE (f.code = ? AND t.code = ?)
+                WHERE (f.code = UPPER(?) AND t.code = UPPER(?))
             
                 UNION
             
@@ -90,7 +90,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
                 JOIN conversion_rates AS cr2 ON cr1.target_currency_id = cr2.base_currency_id
                 JOIN currencies AS f ON cr1.base_currency_id = f.id
                 JOIN currencies AS t ON cr2.target_currency_id = t.id
-                WHERE (f.code = ? AND t.code = ?)
+                WHERE (f.code = UPPER(?) AND t.code = UPPER(?))
             
                 UNION
             
@@ -103,7 +103,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
                 JOIN conversion_rates AS cr2 ON cr1.target_currency_id = cr2.target_currency_id
                 JOIN currencies AS f ON cr1.base_currency_id = f.id
                 JOIN currencies AS t ON t.id = cr2.base_currency_id
-                WHERE (f.code = ? AND t.code = ?)
+                WHERE (f.code = UPPER(?) AND t.code = UPPER(?))
             
                 UNION
             
@@ -116,7 +116,7 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
                 JOIN conversion_rates AS cr2 ON cr1.base_currency_id = cr2.target_currency_id
                 JOIN currencies AS f ON cr1.target_currency_id = f.id
                 JOIN currencies AS t ON t.id = cr2.base_currency_id
-                WHERE (f.code = ? AND t.code = ?)
+                WHERE (f.code = UPPER(?) AND t.code = UPPER(?))
             )
             SELECT
                 0 AS cr_id,
@@ -145,6 +145,9 @@ public class ConversionRateDao extends CrudDao<ConversionRate, Integer> {
                                        @NonNull BigDecimal rate) {
         Connection connection = null;
         try {
+            if (from.equals(to)) {
+                throw new IllegalArgumentException("Base currency and Target currency cannot both be the same");
+            }
             connection = dataSource.getConnection();
             connection.setAutoCommit(false);
 

@@ -17,7 +17,7 @@ public class CurrencyDao extends CrudDao<Currency, Integer> {
     private static final String SELECT_BY_ID_SQL = "SELECT id, fullname, code, sign FROM currencies WHERE id = ?;";
 
     private static final String SELECT_BY_CODE_SQL =
-            "SELECT id, fullname, code, sign FROM currencies WHERE code = ?;";
+            "SELECT id, fullname, code, sign FROM currencies WHERE code = UPPER(?);";
 
     private static final String UPDATE_BY_ID_SQL =
             "UPDATE currencies SET fullname = ?, code = UPPER(?) , sign = ? WHERE id = ?;";
