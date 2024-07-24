@@ -36,7 +36,8 @@ public final class DatabaseUtil {
             properties.setProperty("username", PropertiesUtil.getProperty("database.user"));
             properties.setProperty("password", PropertiesUtil.getProperty(("database.password")));
             properties.setProperty("driverClassName", PropertiesUtil.getProperty("database.driver"));
-            properties.setProperty("maximumPoolSize", PropertiesUtil.getProperty("database.pool.size"));
+            properties.setProperty("maximumPoolSize", PropertiesUtil.getProperty("database.poolSize"));
+            properties.setProperty("minimumIdle", PropertiesUtil.getProperty("database.minimumIdle"));
 
             HikariConfig hikariConfig = new HikariConfig(properties);
             return new HikariDataSource(hikariConfig);
