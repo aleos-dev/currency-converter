@@ -5,7 +5,7 @@ services:
     build:
       context: ./backend
     ports:
-      - "8080:8080"
+      - "9091:8080"
     networks:
       - app-network
 

@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    const host = "http://localhost:8080/currency-converter"
+    const host = "http://localhost:9091/currency-converter"
 
     // Fetch the list of currencies and populate the select element
     function requestCurrencies() {
