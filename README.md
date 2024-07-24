@@ -3,7 +3,22 @@
 This project is an emulation of a currency converter that utilizes an in-memory database to persist data during a single runtime session. It provides various APIs for handling currencies, exchange rates, and conversions.
 
 ## Index
+[Project Objective](#project-objective)
 
+[Getting Started](#getting-started)
+
+[Reflection on the project](architectural-approach)
+  - [approach](#initialization-with-applicationstartuplistener)
+  - [dao layer](#reflections-on-dao-layer)
+  - [service layer](#reflections-on-service-layer)
+  - [servlets](#servlets)
+  - [filters](#filters)
+
+[Exchange API](#exchange-api)
+
+[Currency API](#currency-api)
+
+[Exchange Rate API](#exchange-rate-api)
 
 ## Project Objective
 The aim of this project is to learn how to process HTTP requests with a focus on using servlet APIs. It is essential to understand the workflow involved in processing client requests.The project utilizes various tools:
@@ -28,7 +43,7 @@ The aim of this project is to learn how to process HTTP requests with a focus on
 `The ApplicationStartupListener is utilized to initialize the context with essential components such as the data 
 source and object mapper.`
 
-`The listener contains a predefined list of components necessary for the application's 
+`This object contains a predefined list of components necessary for the application's 
 functionality and relies on ComponentInitializerUtil to instantiate these components.`
 
 `It also handles the manual registration of servlets, aiming to dynamically set servlet mappings, which cannot be achieved through annotations or web.xml.`
@@ -64,6 +79,7 @@ emphasized the need for robust error handling and effective transaction manageme
 
 #### Intermittent SQLite Errors:
 `During development, I encountered sporadic errors related to disappearing tables during save and update operations. This issue proved to be elusive and remains unresolved.`
+###### Solved: It appears that HikariCP closes idle connections, causing the SQLite in-memory database to be lost. Consequently, when HikariCP tries to connect on demand, it creates a new in-memory database without the migrations. This was resolved by setting the minimumIdle property of HikariCP to 1.
 
 #### Boolean Returns in CRUD Operations:
 `CRUD methods were designed to return a boolean to indicate success or failure. Such a binary indicator often falls 
@@ -93,7 +109,7 @@ corresponding entity requires complete currency instances.`
 provides insights into caching operations through console logs when enabled. This approach serves educational purposes.`
 
 ### Servlets
-I try to keep this layes as simple as it can be. The validation, payload extraction and response composing take out 
+I try to keep this layer as simple as it can be. The validation, payload extraction and response composing take out 
 to filter responsibility. It generally calls service and handles result in proper way.
 
 #### BaseServlet: 
@@ -152,7 +168,6 @@ These filters are bound to specific servlets and prepare the working environment
 Each filter ensures the incoming request data is correctly formatted and validated before it is processed by the 
 servlets. They are registered using web.xml, as @WebFilter cannot guarantee the order.
 
-
 # Exchange Rates API
 
 This API allows you to interact with exchange rates and currencies. Below are the available endpoints and their usage.
@@ -164,7 +179,7 @@ This API allows you to interact with exchange rates and currencies. Below are th
 - [x] [Update Existing Exchange Rate](#update-existing-exchange-rate)
 - [x] [Delete Existing Exchange Rate](#delete-existing-exchange-rate)
 
-#### Conversion API
+#### Exchange API
 - [x] [Currency Exchange Calculation](#currency-exchange-calculation)
 
 #### Currency API
