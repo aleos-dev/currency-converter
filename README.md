@@ -168,6 +168,14 @@ These filters are bound to specific servlets and prepare the working environment
 Each filter ensures the incoming request data is correctly formatted and validated before it is processed by the 
 servlets. They are registered using web.xml, as @WebFilter cannot guarantee the order.
 
+### Deployment
+`Docker simplifies running parts of my application, and I appreciate its convenience. This enthusiasm led me to package my application into Docker Hub. Afterwards, I pulled the images onto my server and ran Docker Compose. Initially, everything seemed fine, but over time, the server began to experience issues and eventually hung, necessitating a reboot. After investigating, I discovered that the 1 GB of RAM on my server was insufficient for Docker, as it operates heavily in memory.`
+
+`Consequently, I reverted to using my previously operational Apache server, which was running WordPress. Unsure how to serve a WAR file on Apache, I decided to run Tomcat in the background. I then configured Apache to handle only the frontend, directing it to localhost. I also set up Apache to proxy requests to the backend via SSL certificates, sparing me from configuring SSL on Tomcat. Lastly, I exposed the backend on port 9091, but I am aware it’s not secure to access it directly outside of the frontend setup.`
+
+Note:
+`Upon revisiting the issues with Docker's abundant resource consumption, I discovered that MySQL, which supports the WordPress site (containing about 10KB of content), was consuming approximately 400MB of RAM. This excessive usage was due to a feature known as the "Performance Schema," which provides detailed runtime diagnostics. Considering that my WordPress is a minimal setup for personal use, I disabled this feature. I achieved this by setting performance_schema = 0 in the /etc/mysql/mysql.conf.d/mysqld.conf file. After this adjustment, the memory consumption dropped by more than half.`
+
 # Exchange Rates API
 
 This API allows you to interact with exchange rates and currencies. Below are the available endpoints and their usage.
