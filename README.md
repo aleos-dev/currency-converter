@@ -2,8 +2,24 @@
 
 This project is an emulation of a currency converter that utilizes an in-memory database to persist data during a single runtime session. It provides various APIs for handling currencies, exchange rates, and conversions.
 
+### Live Demo 
+`Visit the live version of our project here:` [Converter App](https://converter.ale-os.com).
+
+### API Access
+`You can access our raw API at the following endpoint (http, case-sensitive):` http://ale-os.com:9091/currency-converter/exchangeRates
+
+### Learn More
+`If you are interested in learning more about servlets, you may find my article helpful, available here:` [Read More 
+About Servlets](https://ale-os.com/?s=%D1%81%D0%B5%D1%80%D0%B2%D0%BB%D0%B5%D1%82) (not finished)
+
 ## Index
+[Live Demo](#live-demo)
+
+[Learn More](#learn-more)
+
 [Project Objective](#project-objective)
+
+[Project Requirements](https://zhukovsd.github.io/java-backend-learning-course/projects/currency-exchange/)
 
 [Getting Started](#getting-started)
 
@@ -20,6 +36,11 @@ This project is an emulation of a currency converter that utilizes an in-memory 
 
 [Exchange Rate API](#exchange-rate-api)
 
+[Share your feedback](#share-your-feedback)
+
+[Acknowledgments](#Acknowledgments)
+
+
 ## Project Objective
 The aim of this project is to learn how to process HTTP requests with a focus on using servlet APIs. It is essential to understand the workflow involved in processing client requests.The project utilizes various tools:
 
@@ -34,8 +55,6 @@ The aim of this project is to learn how to process HTTP requests with a focus on
 - **ModelMapper**: Simplifies the task of mapping objects to each other.
 - **GSON**: A Java library used to convert Java Objects into their JSON representation and vice versa.
 - **Maven**: A build automation tool used primarily for Java projects.
-
-## Getting Started
 
 ## Architectural Approach
 
@@ -175,6 +194,77 @@ servlets. They are registered using web.xml, as @WebFilter cannot guarantee the 
 
 Note:
 `Upon revisiting the issues with Docker's abundant resource consumption, I discovered that MySQL, which supports the WordPress site (containing about 10KB of content), was consuming approximately 400MB of RAM. This excessive usage was due to a feature known as the "Performance Schema," which provides detailed runtime diagnostics. Considering that my WordPress is a minimal setup for personal use, I disabled this feature. I achieved this by setting performance_schema = 0 in the /etc/mysql/mysql.conf.d/mysqld.conf file. After this adjustment, the memory consumption dropped by more than half.`
+
+## Getting Started
+
+Follow these steps to get the project up and running on your local machine.
+
+### Prerequisites
+
+Before you begin, ensure you have the following software installed and available:
+
+- **Docker:** [Download Docker](https://www.docker.com/products/docker-desktop)
+- **Docker Compose:** Included with Docker Desktop, or [Install Docker Compose](https://docs.docker.com/compose/install/)
+
+Ensure that ports **9091** and **80** on localhost are free for use.
+
+### Installation
+
+1. **Download and Extract the Project:**
+
+- Download the project ZIP file from the repository.
+
+- Unzip the file to your desired directory.
+
+2. **Navigate to the Project Directory:**
+
+    ```sh
+    cd yourprojectdirectory
+    ```
+
+### Running the Project
+
+Use Docker Compose to build and run the project in detached mode.
+
+1. **Build and Run the Docker Containers:**
+
+    ```sh
+    docker-compose up --build -d
+    ```
+
+### Basic Usage
+
+- **Access the Frontend:**
+
+  Once the project is running, you can access the frontend at:
+
+    ```sh
+    http://localhost:80
+    ```
+
+- **Access the API:**
+
+  You can access the API at:
+
+    ```sh
+    http://localhost:9091/currency-converter
+    ```
+
+- **Example API Request:**
+
+  To get exchange rates, use the following endpoint:
+
+    ```sh
+    http://localhost:9091/currency-converter/exchangeRates
+    ```
+
+  Example cURL request:
+
+    ```sh
+    curl -X GET "http://localhost:9091/currency-converter/exchangeRates"
+    ```
+
+Feel free to explore both the frontend and the API to see the project in action!
 
 # Exchange Rates API
 
@@ -531,3 +621,21 @@ in the request path. Data is submitted in the request body as form fields (x-www
 - `400 Bad Request` - Missing or invalid a required path identifier
 - `404 Not Found` - Currency not found in the database
 - `500 Internal Server Error` - Error (e.g., database unavailable)
+
+
+### Share Your Feedback
+I am continuously looking to refine my understanding and implementation of programming. If you have insights,
+critiques, or advice—or if you wish to discuss any aspect of this project further—I warmly welcome your
+contributions. Please feel free to [open an issue](https://github.com/aleos-dev/currency-converter/issues) to share
+your
+thoughts.
+
+## Acknowledgments
+
+`I want to express my gratitude to the author of the `[technical requirements](https://zhukovsd.github.io/java-backend-learning-course/projects/currency-exchange/)` for this project, `[Zhukov S. D.]
+(https://t.me/zhukovsd_it_mentor)`, and to the `[community](https://t.me/zhukovsd_it_chat)` he has gathered. It is rewarding to be involved with such a dedicated group.`
+
+`Special thanks to Java for not making me code this in assembler!`
+
+`And a big shout-out to coffee – the fuel that kept this project running smoothly!`
+
