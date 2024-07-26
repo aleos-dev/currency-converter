@@ -629,8 +629,7 @@ thoughts.
 
 ## 🙌 Acknowledgments
 
-`I want to express my gratitude to the author of the `[technical requirements](https://zhukovsd.github.io/java-backend-learning-course/projects/currency-exchange/)` for this project, `[Zhukov S. D.]
-(https://t.me/zhukovsd_it_mentor)`, and to the `[community](https://t.me/zhukovsd_it_chat)` he has gathered. It is rewarding to be involved with such a dedicated group.`
+`I want to express my gratitude to the author of the `[technical requirements](https://zhukovsd.github.io/java-backend-learning-course/projects/currency-exchange/)` for this project, `[Zhukov S. D.](https://t.me/zhukovsd_it_mentor)`, and to the `[community](https://t.me/zhukovsd_it_chat)` he has gathered. It is rewarding to be involved with such a dedicated group.`
 
 `Special thanks to Java for not making me code this in assembler!`
 
