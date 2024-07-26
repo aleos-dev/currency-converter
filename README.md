@@ -1,9 +1,7 @@
 # 💱 Currency Convertor
-<div>
-    <img src="/.github/img/currency-converter-main.webp" alt="main-image" title="main-image" style="float:right; width:200px; height:200px; margin-left:20px;">
-    <p>🚀 Welcome to the Currency Converter project! This pet project is more than just a tool—it's a playground for tech enthusiasts and budding developers alike. Designed as a spirited experiment, it allows me to dive deep into the world of Java servlets and in-memory databases, all while keeping a light-hearted approach to learning.</p>
-    <p>💹 It offers a suite of APIs for real-time interactions with currencies and exchange rates, making it not only functional but also a robust example of backend craftsmanship.</p>
-</div>
+
+| 🚀 Welcome to the Currency Converter project! This pet project isn't just about converting currencies—it's my journey into exploring the world of Java servlets, all while maintaining a fun and engaging approach to learning.<br/>💹 It offers a suite of APIs for real-time interactions with currencies and exchange rates, making it both functional and educational. | ![](/.github/img/currency-converter-main.webp) |
+| --- | --- |
 
 ### 🚀 Live Demo 
 `Visit the live version of our project here:` [Converter App](https://converter.ale-os.com).
