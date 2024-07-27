@@ -15,12 +15,13 @@ About Servlets](https://ale-os.com/?s=%D1%81%D0%B5%D1%80%D0%B2%D0%BB%D0%B5%D1%82
 
 ## 📖 Index
 
-💡 [Reflection on the project](architectural-approach)
+💡 [Reflection on the project](#architectural-approach)
   - 🛠 [approach](#initialization-with-applicationstartuplistener)
-  - 📁 [dao layer](#reflections-on-dao-layer)
-  - 🛠 [service layer](#reflections-on-service-layer)
+  - 📁 [dao layer](#reflections-on-the-dao-layer)
+  - 🛠 [service layer](#reflections-on-the-service-layer)
   - 🌐 [servlets](#servlets)
   - 🔍 [filters](#filters)
+  - 🛠 [deployment](#deployment)
 
 📉 [Exchange API](#exchange-api)
 
@@ -36,7 +37,7 @@ About Servlets](https://ale-os.com/?s=%D1%81%D0%B5%D1%80%D0%B2%D0%BB%D0%B5%D1%82
 
 🙌 [Acknowledgments](#Acknowledgments)
 
-## 🎯 Project Objective
+## Project Objective🎯
 The aim of this project is to learn how to process HTTP requests with a focus on using servlet APIs. It is essential to understand the workflow involved in processing client requests.The project utilizes various tools:
 
 - **🌐 Servlet API**: Provides a standard way to handle HTTP requests and responses. 
@@ -51,7 +52,7 @@ The aim of this project is to learn how to process HTTP requests with a focus on
 - **📊 GSON**: A Java library used to convert Java Objects into their JSON representation and vice versa.
 - **🛠 Maven**: A build automation tool used primarily for Java projects.
 
-## 💡 Architectural Approach
+## Architectural Approach💡
 
 #### Initialization with ApplicationStartupListener:
 `The ApplicationStartupListener is utilized to initialize the context with essential components such as the data 
@@ -71,7 +72,7 @@ functionality and relies on ComponentInitializerUtil to instantiate these compon
 #### Property Management with PropertiesUtil:
 `PropertiesUtil acts as the property source for the application, loading configurations from the application.properties file.`
 
-### 💡 Reflections on the DAO Layer
+### Reflections on the DAO Layer💡
 
 Despite not requiring all CRUD operations per project specifications, I  decided to implement them to gain experience with the interplay between entities facilitated by an abstract CRUD class. This approach allowed me to extract common logic into a base class, enhancing code reuse and maintainability.
 
@@ -99,7 +100,7 @@ emphasized the need for robust error handling and effective transaction manageme
 `CRUD methods were designed to return a boolean to indicate success or failure. Such a binary indicator often falls 
   short in situations where detailed, nuanced feedback is required.`
 
-### 💡 Reflections on the Service Layer
+### Reflections on the Service Layer💡
 
 The service layer in this application primarily mirrors the functionality of the DAO layer due to the simplicity of 
 the application requirements. This layer handles both DTOs and entities, utilizing a ModelMapper instance to convert between these types.
@@ -122,7 +123,7 @@ corresponding entity requires complete currency instances.`
 `The implementation of CacheService was intended to simulate the behavior of a caching layer. It 
 provides insights into caching operations through console logs when enabled. This approach serves educational purposes.`
 
-### 💡 Servlets
+### Servlets💡
 I try to keep this layer as simple as it can be. The validation, payload extraction and response composing take out 
 to filter responsibility. It generally calls service and handles result in proper way.
 
@@ -150,7 +151,7 @@ codes. There are two main variants for error handling:
 
 Error pages are declared in the web.xml configuration file.
 
-### 💡 Filters
+### Filters💡
 Understanding the role of filters in web application development is crucial. Filters do much more than modify incoming requests—they are essential in managing various aspects of request processing.
 
 #### Common filters
@@ -182,7 +183,7 @@ These filters are bound to specific servlets and prepare the working environment
 Each filter ensures the incoming request data is correctly formatted and validated before it is processed by the 
 servlets. They are registered using web.xml, as @WebFilter cannot guarantee the order.
 
-### 🚀 Deployment
+### Deployment🚀
 `Docker simplifies running parts of my application, and I appreciate its convenience. This enthusiasm led me to package my application into Docker Hub. Afterwards, I pulled the images onto my server and ran Docker Compose. Initially, everything seemed fine, but over time, the server began to experience issues and eventually hung, necessitating a reboot. After investigating, I discovered that the 1 GB of RAM on my server was insufficient for Docker, as it operates heavily in memory.`
 
 `Consequently, I reverted to using my previously operational Apache server, which was running WordPress. Unsure how to serve a WAR file on Apache, I decided to run Tomcat in the background. I then configured Apache to handle only the frontend, directing it to localhost. I also set up Apache to proxy requests to the backend via SSL certificates, sparing me from configuring SSL on Tomcat. Lastly, I exposed the backend on port 9091, but I am aware it’s not secure to access it directly outside of the frontend setup.`
@@ -190,7 +191,7 @@ servlets. They are registered using web.xml, as @WebFilter cannot guarantee the 
 Note:
 `Upon revisiting the issues with Docker's abundant resource consumption, I discovered that MySQL, which supports the WordPress site (containing about 10KB of content), was consuming approximately 400MB of RAM. This excessive usage was due to a feature known as the "Performance Schema," which provides detailed runtime diagnostics. Considering that my WordPress is a minimal setup for personal use, I disabled this feature. I achieved this by setting performance_schema = 0 in the /etc/mysql/mysql.conf.d/mysqld.conf file. After this adjustment, the memory consumption dropped by more than half.`
 
-## 🌱 Getting Started
+## Getting Started🌱
 
 Follow these steps to get the project up and running on your local machine.
 
@@ -261,21 +262,21 @@ Use Docker Compose to build and run the project in detached mode.
 
 Feel free to explore both the frontend and the API to see the project in action!
 
-# 🔗 API
+# API🔗
 
 This API allows you to interact with exchange rates and currencies. Below are the available endpoints and their usage.
 
-#### 💹 Exchange Rate API
+#### Exchange Rate API💹
 - [x] [GET All Exchange Rates](#get-all-exchange-rates)
 - [x] [GET Specific Exchange Rate](#get-specific-exchange-rates)
 - [x] [Add New Exchange Rate](#add-new-exchange-rate)
 - [x] [Update Existing Exchange Rate](#update-existing-exchange-rate)
 - [x] [Delete Existing Exchange Rate](#delete-existing-exchange-rate)
 
-#### 📉 Exchange API
+#### Exchange API📉
 - [x] [Currency Exchange Calculation](#currency-exchange-calculation)
 
-#### 💱 Currency API
+#### Currency API💱
 - [x] [GET All Currencies](#get-all-currencies)
 - [x] [GET Specific Currency](#get-specific-currency)
 - [x] [Add New Currency](#add-new-currency)
@@ -618,14 +619,14 @@ in the request path. Data is submitted in the request body as form fields (x-www
 - `500 Internal Server Error` - Error (e.g., database unavailable)
 
 
-### 💬 Share Your Feedback
+### Share Your Feedback💬
 I am continuously looking to refine my understanding and implementation of programming. If you have insights,
 critiques, or advice—or if you wish to discuss any aspect of this project further—I warmly welcome your
 contributions. Please feel free to [open an issue](https://github.com/aleos-dev/currency-converter/issues) to share
 your
 thoughts.
 
-## 🙌 Acknowledgments
+## Acknowledgments🙌
 
 `I want to express my gratitude to the author of the `[technical requirements](https://zhukovsd.github.io/java-backend-learning-course/projects/currency-exchange/)` for this project, `[Zhukov S. D.](https://t.me/zhukovsd_it_mentor)`, and to the `[community](https://t.me/zhukovsd_it_chat)` he has gathered. It is rewarding to be involved with such a dedicated group.`
 
