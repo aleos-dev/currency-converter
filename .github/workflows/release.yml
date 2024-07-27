@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     permissions:
       contents: write
 
@@ -25,38 +25,42 @@ jobs:
           cache: maven
 
       - name: Build projects
-        run: mvn -B package --file pom.xml
+        run: |
+          cd backend
+          mvn -B package --file pom.xml
 
       - name: Copy artifact
         run: |
           mkdir app
-          cp target/*.war app/currency-converter.war
-
+          cp backend/target/*.war app/currency-converter.war
+          
       - name: Upload build artifact
         uses: actions/upload-artifact@v4.3.3
         with:
-          name: currency-converter.war
+          # identifier to uploaded files
+          name: uploaded-data
           path: app/currency-converter.war
 
   release:
     needs: build
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
+  
+      - name: Download Artifact
+        uses: actions/download-artifact@v4.1.8
         with:
-          path: artifactFolder
-
-      - name: Display structure of downloaded files
-        run: ls -R artifactFolder
-
-      - name: Create GitHub Release with the artifact
+          # identifier of files to download
+          name: uploaded-data
+          path: to-release
+          
+      - name: List contents of the artifact directory
+        run: ls -l to-release/
+  
+      - name: Release
         uses: ncipollo/release-action@v1.14.0
         with:
-          allowUpdates: true
-          token: ${{ secrets.RELEASE_TOKEN }}
-          artifacts: "artifactFolder/*.war"
+          name: "currency-converter.war"
+          # path to file with the name of the uploaded file
+          artifacts: "to-release/currency-converter.war"  
+          token: ${{ secrets.FOR_RELEASE_TOKEN }}
